@@ -2,9 +2,9 @@
 
 public class PageQuery2
 {
-	public int PageSize { get; set; }
+	public int? PageSize { get; set; }
 
-	public int PageNum { get; set; }
+	public int? PageNum { get; set; }
 
 	public string OrderByColumn { get; set; }
 
@@ -20,9 +20,13 @@ public class PageQuery2
 	 */
 	public const int DEFAULT_PAGE_SIZE = int.MaxValue;
 
-	public PageQuery2(int page = 1, int pageSize = 20)
+	public PageQuery2(int page, int pageSize = 20)
 	{
 		this.PageNum = page;
 		this.PageSize = pageSize;
+	}
+
+	public PageQuery2()
+	{
 	}
 }

@@ -4,14 +4,18 @@ namespace sevencat.ruoyi.common.lang;
 
 public class TreeSelectNode<T>
 {
+	[JsonNumberHandling(JsonNumberHandling.WriteAsString)]
 	public long Id { get; set; }
+
+	[JsonNumberHandling(JsonNumberHandling.WriteAsString)]
 	public long ParentId { get; set; }
+
 	public string Label { get; set; }
 	public int Weight { get; set; }
 	public bool Disabled { get; set; }
-	
+
 	[JsonIgnore]
 	public T Data { get; set; }
-	
+
 	public List<TreeSelectNode<T>> Children { get; set; }
 }
