@@ -60,6 +60,7 @@ public class LoginService(
 
 		var loginUser = await BuildLoginUser(dbuser);
 		var token = Guid.NewGuid().ToString("N");
+		loginUser.Token = token;
 		var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
 		await cache.SetAsync(cachekey, loginUser, x => x.SetDuration(TimeSpan.FromDays(1)));
 
@@ -212,5 +213,25 @@ public class LoginService(
 	{
 		var lu = await GetLoginUser();
 		return lu?.UserId;
+	}
+
+	public async Task Logout()
+	{
+		try
+		{
+			var lu = await GetLoginUser();
+			if (lu == null)
+			{
+				return;
+			}
+
+			var token = lu.Token;
+			var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
+			await cache.RemoveAsync(cachekey);
+		}
+		catch (Exception ex)
+		{
+			// ignored
+		}
 	}
 }

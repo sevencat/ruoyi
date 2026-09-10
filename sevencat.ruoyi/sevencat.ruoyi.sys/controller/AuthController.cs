@@ -44,4 +44,14 @@ public class AuthController(
 		var rsp = await loginService.login(req);
 		return rsp.ToCommonResult();
 	}
+
+	/**
+     * 退出登录
+     */
+	[HttpPost("logout")]
+	public async Task<CommonResult> logout()
+	{
+		await loginService.Logout();
+		return CommonResult.Ok();
+	}
 }
