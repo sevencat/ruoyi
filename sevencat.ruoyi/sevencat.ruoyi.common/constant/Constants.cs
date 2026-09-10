@@ -1,4 +1,4 @@
-﻿namespace sevencat.ruoyi.core.constant;
+﻿namespace sevencat.ruoyi.common.constant;
 
 /// <summary>
 /// 通用基础常量定义。

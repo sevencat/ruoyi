@@ -1,8 +1,8 @@
 ﻿using MapsterMapper;
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common.entity;
+using sevencat.ruoyi.common.security.attr;
 using sevencat.ruoyi.common.util;
-using sevencat.ruoyi.core.security.attr;
 using sevencat.ruoyi.sys.entity;
 using sevencat.ruoyi.sys.entity.db;
 using sevencat.ruoyi.sys.service;

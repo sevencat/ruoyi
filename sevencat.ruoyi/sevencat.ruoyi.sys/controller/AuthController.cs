@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.captcha.config;
-using sevencat.ruoyi.core.constant;
+using sevencat.ruoyi.common.constant;
 using sevencat.ruoyi.sys.service;
 using sevencat.ruoyi.sys.vo;
 using SixLaborsCaptcha.Core;

@@ -1,4 +1,4 @@
-﻿namespace sevencat.ruoyi.core.exception;
+﻿namespace sevencat.ruoyi.common.exception;
 
 public class BaseException : Exception
 {

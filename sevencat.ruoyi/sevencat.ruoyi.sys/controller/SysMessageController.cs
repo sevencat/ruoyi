@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using sevencat.common.entity;
-using sevencat.ruoyi.core.security;
+using sevencat.ruoyi.common.security;
 using sevencat.ruoyi.sys.service;
 using sevencat.ruoyi.sys.vo;
 

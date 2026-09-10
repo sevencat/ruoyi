@@ -1,6 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 using sevencat.ruoyi.common.db.attr;
-using sevencat.ruoyi.core.entity.db;
+using sevencat.ruoyi.common.entity.db;
 
 namespace sevencat.ruoyi.sys.entity.db;
 

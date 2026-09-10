@@ -1,4 +1,4 @@
-﻿namespace sevencat.ruoyi.core.constant;
+﻿namespace sevencat.ruoyi.common.constant;
 
 public class GlobalConstants
 {

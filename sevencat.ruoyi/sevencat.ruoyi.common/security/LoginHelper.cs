@@ -1,6 +1,6 @@
 ﻿using Autofac.Util;
 
-namespace sevencat.ruoyi.core.security;
+namespace sevencat.ruoyi.common.security;
 
 public class LoginHelper
 {

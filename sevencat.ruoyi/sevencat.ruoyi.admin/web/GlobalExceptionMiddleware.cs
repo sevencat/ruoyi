@@ -1,6 +1,6 @@
 ﻿using sevencat.common;
 using sevencat.common.entity;
-using sevencat.ruoyi.core.exception;
+using sevencat.ruoyi.common.exception;
 
 namespace sevencat.ruoyi.web;
 

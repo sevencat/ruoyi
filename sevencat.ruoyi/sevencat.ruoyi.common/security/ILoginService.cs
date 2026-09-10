@@ -1,4 +1,4 @@
-﻿namespace sevencat.ruoyi.core.security;
+﻿namespace sevencat.ruoyi.common.security;
 
 public interface ILoginService
 {

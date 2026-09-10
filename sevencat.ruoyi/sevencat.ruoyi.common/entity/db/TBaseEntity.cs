@@ -1,6 +1,6 @@
 ﻿using FreeSql.DataAnnotations;
 
-namespace sevencat.ruoyi.core.entity.db;
+namespace sevencat.ruoyi.common.entity.db;
 
 public class TBaseEntity
 {

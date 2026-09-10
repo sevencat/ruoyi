@@ -11,7 +11,6 @@ using Microsoft.Extensions.FileProviders;
 using NLog.Extensions.Logging;
 using Scalar.AspNetCore;
 using sevencat.ruoyi.common;
-using sevencat.ruoyi.core;
 using sevencat.ruoyi.sys;
 using sevencat.ruoyi.web;
 using sevencat.ruoyi.web.proxy;
@@ -123,12 +122,10 @@ public class Program
 	{
 		var module = new AutofacAnnotationModule(typeof(Program).Assembly,
 			typeof(CommonModule).Assembly,
-			typeof(Coreodule).Assembly,
 			typeof(SysModule).Assembly);
 		module.SetDefaultAutofacScopeToSingleInstance();
 		module.SetDefaultValueResource(config);
 		builder.RegisterModule(module);
-		builder.RegisterModule<Coreodule>();
 		builder.RegisterModule<CommonModule>();
 		builder.RegisterModule<SysModule>();
 	}

@@ -15,4 +15,8 @@
       <PackageReference Include="Sevencat.Autofac.Annotation" Version="1.0.7" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="entity\" />
+    </ItemGroup>
+
 </Project>
