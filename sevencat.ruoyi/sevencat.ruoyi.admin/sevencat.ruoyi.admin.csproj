@@ -10,14 +10,21 @@
     <ItemGroup>
         <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="11.0.2" />
         <PackageReference Include="dotenv.net" Version="4.1.0" />
+        <PackageReference Include="FreeRedis" Version="1.5.5" />
+        <PackageReference Include="FreeSql.Extensions.JsonMap.STJ" Version="3.5.305" />
+        <PackageReference Include="FreeSql.Provider.MySqlConnector" Version="3.5.311" />
+        <PackageReference Include="FreeSql.Provider.Sqlite" Version="3.5.311" />
         <PackageReference Include="Hangfire.AspNetCore" Version="1.8.25" />
         <PackageReference Include="Hangfire.Console" Version="1.4.3" />
         <PackageReference Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12"/>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
+        <PackageReference Include="MySqlConnector" Version="2.6.2" />
         <PackageReference Include="NLog.Extensions.Logging" Version="6.2.0" />
         <PackageReference Include="Scalar.AspNetCore" Version="2.16.16" />
         <PackageReference Include="Sevencat.Autofac.Annotation" Version="1.0.7" />
         <PackageReference Include="sevencat.common" Version="1.0.9" />
+        <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
+        <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.7.2" />
     </ItemGroup>
 
     <ItemGroup>

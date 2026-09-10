@@ -8,6 +8,7 @@ using Hangfire.MemoryStorage;
 using Microsoft.Extensions.FileProviders;
 using NLog.Extensions.Logging;
 using Scalar.AspNetCore;
+using sevencat.ruoyi.web.proxy;
 
 namespace sevencat.ruoyi;
 
@@ -36,6 +37,9 @@ public class Program
 			opts.JsonSerializerOptions.Converters.Add(new common.json.JsonConverterUtil.DateTimeNullConverter());
 		});
 		mvcBuilder.Services.AddHttpContextAccessor();
+
+		// /api/** 兜底转发
+		builder.Services.AddApiProxy(config);
 
 
 		// builder.Services.AddSignalR().AddHubOptions<MsgHub>(options =>
@@ -85,6 +89,8 @@ public class Program
 
 		app.UseCors("AllowAll");
 		app.MapControllers();
+		// 未被本项目处理的 /api/** 请求转发到目标地址
+		app.MapApiProxy(config);
 		app.MapHangfireDashboard();
 
 		app.MapOpenApi();
