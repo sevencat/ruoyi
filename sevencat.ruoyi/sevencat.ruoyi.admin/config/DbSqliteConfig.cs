@@ -2,6 +2,7 @@
 using Autofac.Annotation;
 using Autofac.Annotation.Condition;
 using sevencat.common;
+using sevencat.ruoyi.common.db.util;
 
 namespace sevencat.ruoyi.config;
 
@@ -42,12 +43,11 @@ public class DbSqliteConfig
 			.UseConnectionString(FreeSql.DataType.Sqlite, dbconnbuilder.ToString())
 			.UseAutoSyncStructure(false)
 			.Build();
-		var usejsonmap = cfg.GetValue<int>("db:usejsonmap");
-		if (usejsonmap == 1)
-			fsql.UseJsonMap();
+		fsql.UseJsonMap();
 		var showsql = cfg.GetValue<int>("db:showsql");
 		if (showsql == 1)
 			fsql.Aop.CurdBefore += (_, e) => { Log.Info(e.Sql); };
+		FSqlAop.SetupFreesql(fsql);
 		return fsql;
 	}
 }

@@ -19,22 +19,26 @@
         <PackageReference Include="Hangfire.MemoryStorage" Version="1.8.1.2" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.12" />
         <PackageReference Include="MySqlConnector" Version="2.6.2" />
+        <PackageReference Include="NLog" Version="6.2.0" />
         <PackageReference Include="NLog.Extensions.Logging" Version="6.2.0" />
         <PackageReference Include="Scalar.AspNetCore" Version="2.16.16" />
         <PackageReference Include="Sevencat.Autofac.Annotation" Version="1.0.7" />
         <PackageReference Include="sevencat.common" Version="1.0.9" />
+        <PackageReference Include="SixLaborsCaptcha.Core" Version="1.0.0" />
         <PackageReference Include="Yarp.ReverseProxy" Version="2.3.0" />
         <PackageReference Include="ZiggyCreatures.FusionCache" Version="2.7.2" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Controllers\" />
     </ItemGroup>
 
     <ItemGroup>
       <None Update=".env">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\sevencat.ruoyi.common\sevencat.ruoyi.common.csproj" />
+      <ProjectReference Include="..\sevencat.ruoyi.core\sevencat.ruoyi.core.csproj" />
+      <ProjectReference Include="..\sevencat.ruoyi.sys\sevencat.ruoyi.sys.csproj" />
     </ItemGroup>
 
 </Project>

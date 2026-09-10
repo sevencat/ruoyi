@@ -1,4 +1,6 @@
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Autofac;
 using Autofac.Annotation;
 using Autofac.Extensions.DependencyInjection;
@@ -8,6 +10,9 @@ using Hangfire.MemoryStorage;
 using Microsoft.Extensions.FileProviders;
 using NLog.Extensions.Logging;
 using Scalar.AspNetCore;
+using sevencat.ruoyi.common;
+using sevencat.ruoyi.core;
+using sevencat.ruoyi.sys;
 using sevencat.ruoyi.web.proxy;
 
 namespace sevencat.ruoyi;
@@ -31,10 +36,13 @@ public class Program
 		var mvcBuilder = builder.Services.AddControllers();
 		mvcBuilder.AddControllersAsServices().AddJsonOptions((opts) =>
 		{
-			opts.JsonSerializerOptions.PropertyNamingPolicy = null;
+			opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+			opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+			opts.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
 			// 时间统一格式化为 "yyyy-MM-dd HH:mm:ss"
-			opts.JsonSerializerOptions.Converters.Add(new common.json.JsonConverterUtil.DateTimeConverter());
-			opts.JsonSerializerOptions.Converters.Add(new common.json.JsonConverterUtil.DateTimeNullConverter());
+			opts.JsonSerializerOptions.Converters.Add(new sevencat.common.json.JsonConverterUtil.DateTimeConverter());
+			opts.JsonSerializerOptions.Converters.Add(
+				new sevencat.common.json.JsonConverterUtil.DateTimeNullConverter());
 		});
 		mvcBuilder.Services.AddHttpContextAccessor();
 
@@ -112,9 +120,15 @@ public class Program
 
 	private static void ConfigIoc(ContainerBuilder builder, IConfiguration config)
 	{
-		var module = new AutofacAnnotationModule(typeof(Program).Assembly);
+		var module = new AutofacAnnotationModule(typeof(Program).Assembly,
+			typeof(CommonModule).Assembly,
+			typeof(Coreodule).Assembly,
+			typeof(SysModule).Assembly);
 		module.SetDefaultAutofacScopeToSingleInstance();
 		module.SetDefaultValueResource(config);
 		builder.RegisterModule(module);
+		builder.RegisterModule<Coreodule>();
+		builder.RegisterModule<CommonModule>();
+		builder.RegisterModule<SysModule>();
 	}
 }
