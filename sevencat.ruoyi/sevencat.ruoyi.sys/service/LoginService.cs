@@ -6,6 +6,7 @@ using sevencat.ruoyi.common.captcha.config;
 using sevencat.ruoyi.common.util;
 using sevencat.ruoyi.core.constant;
 using sevencat.ruoyi.core.exception.user;
+using sevencat.ruoyi.core.security;
 using sevencat.ruoyi.sys.constant;
 using sevencat.ruoyi.sys.dto;
 using sevencat.ruoyi.sys.entity;
@@ -23,7 +24,7 @@ public class LoginService(
 	IHttpContextAccessor httpCtxAccessor,
 	CaptchaProperties captchaProperties,
 	IFusionCache cache,
-	SysPermissionService sysPermissionService)
+	SysPermissionService sysPermissionService) : ILoginService
 {
 	private static readonly NLog.Logger Log = NLog.LogManager.GetCurrentClassLogger();
 
@@ -57,7 +58,7 @@ public class LoginService(
 			throw new UserException("user.password.retry.limit.exceed", username);
 		}
 
-		var loginUser =await BuildLoginUser(dbuser);
+		var loginUser = await BuildLoginUser(dbuser);
 		var token = Guid.NewGuid().ToString("N");
 		var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
 		await cache.SetAsync(cachekey, loginUser, x => x.SetDuration(TimeSpan.FromDays(1)));
@@ -205,5 +206,11 @@ public class LoginService(
 			.ToList();
 
 		return loginUser;
+	}
+
+	public async Task<long?> GetLoginuid()
+	{
+		var lu = await GetLoginUser();
+		return lu?.UserId;
 	}
 }

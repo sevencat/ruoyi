@@ -1,6 +1,9 @@
 ﻿using FreeSql.DataAnnotations;
 using sevencat.ruoyi.common.db.attr;
+using sevencat.ruoyi.common.util;
+using sevencat.ruoyi.core.constant;
 using sevencat.ruoyi.core.entity.db;
+using sevencat.ruoyi.sys.constant;
 
 namespace sevencat.ruoyi.sys.entity.db;
 
@@ -107,4 +110,102 @@ public class TSysMenu : TBaseEntity
 	/// </summary>
 	[Column(Name = "ext", StringLength = 2000, IsNullable = true)]
 	public string Ext { get; set; } = string.Empty;
+
+	[Column(IsIgnore = true)]
+	public string ParentName { get; set; }
+
+	[Column(IsIgnore = true)]
+	public List<TSysMenu> Children { get; set; } = [];
+
+	public string GetRouteName()
+	{
+		string routerName = CommonStrUtil.Capitalize(Path);
+		// 非外链并且是一级目录（类型为目录）
+		if (IsMenuFrame())
+		{
+			routerName = string.Empty;
+		}
+
+		return routerName;
+	}
+
+	public bool IsMenuFrame()
+	{
+		return (Constants.TOP_PARENT_ID == ParentId)
+		       && (SystemConstants.TYPE_MENU == MenuType)
+		       && (IsFrame == SystemConstants.NO);
+	}
+
+	/**
+    * 是否为内链组件
+    */
+	public bool IsInnerLink()
+	{
+		return (IsFrame == SystemConstants.NO) && Path.Ishttp();
+	}
+
+	/**
+     * 内链域名特殊字符替换
+     */
+	public static string InnerLinkReplaceEach(String path)
+	{
+		return CommonStrUtil.ReplaceEach(path,
+			[Constants.HTTP, Constants.HTTPS, Constants.WWW, ".", CommonStrUtil.COLON],
+			["", "", "", "/", "/"]);
+	}
+
+	public string GetRouterPath()
+	{
+		var routerPath = this.Path;
+		// 内链打开外网方式
+		if ((Constants.TOP_PARENT_ID != ParentId) && IsInnerLink())
+		{
+			routerPath = InnerLinkReplaceEach(routerPath);
+		}
+
+		// 非外链并且是一级目录（类型为目录）
+		if ((Constants.TOP_PARENT_ID == ParentId)
+		    && SystemConstants.TYPE_DIR == MenuType
+		    && SystemConstants.NO == IsFrame)
+		{
+			routerPath = "/" + this.Path;
+		}
+		// 非外链并且是一级目录（类型为菜单）
+		else if (IsMenuFrame())
+		{
+			routerPath = "/";
+		}
+
+		return routerPath;
+	}
+	
+	/// <summary>
+	/// 获取组件信息
+	/// </summary>
+	public string GetComponentInfo()
+	{
+		var component = SystemConstants.LAYOUT;
+		if (!string.IsNullOrEmpty(this.Component) && !IsMenuFrame())
+		{
+			component = this.Component;
+		}
+		else if (string.IsNullOrEmpty(this.Component) && Constants.TOP_PARENT_ID != ParentId && IsInnerLink())
+		{
+			component = SystemConstants.INNER_LINK;
+		}
+		else if (string.IsNullOrEmpty(this.Component) && IsParentView())
+		{
+			component = SystemConstants.PARENT_VIEW;
+		}
+
+		return component;
+	}
+
+	/// <summary>
+	/// 是否为 parent_view 组件
+	/// </summary>
+	public bool IsParentView()
+	{
+		return Constants.TOP_PARENT_ID != ParentId && SystemConstants.TYPE_DIR == MenuType;
+	}
 }
