@@ -1,4 +1,4 @@
-namespace sevencat.ruoyi.sys.entity.dto;
+namespace sevencat.ruoyi.sys.dto;
 
 /// <summary>
 /// 任务受让人

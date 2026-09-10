@@ -1,4 +1,4 @@
-namespace sevencat.ruoyi.sys.entity.dto;
+namespace sevencat.ruoyi.sys.dto;
 
 /// <summary>
 /// OSS 文件简要信息对象

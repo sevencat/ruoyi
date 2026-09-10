@@ -1,4 +1,4 @@
-namespace sevencat.ruoyi.sys.entity.dto;
+namespace sevencat.ruoyi.sys.dto;
 
 /// <summary>
 /// 岗位简要信息对象

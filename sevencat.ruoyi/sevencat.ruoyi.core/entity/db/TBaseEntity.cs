@@ -19,6 +19,6 @@ public class TBaseEntity
 	[Column(Name = "update_time", IsNullable = true, Position = -2)]
 	public DateTime? UpdateTime { get; set; }
 
-	[Column(Name = "remark", IsNullable = true, StringLength = 500,Position = -1)]
-	public string Remark { get; set; }
+	// [Column(Name = "remark", IsNullable = true, StringLength = 500,Position = -1)]
+	// public string Remark { get; set; }
 }

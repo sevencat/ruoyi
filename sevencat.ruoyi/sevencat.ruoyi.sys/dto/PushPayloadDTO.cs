@@ -1,6 +1,6 @@
 using sevencat.ruoyi.common.enums;
 
-namespace sevencat.ruoyi.sys.entity.dto;
+namespace sevencat.ruoyi.sys.dto;
 
 /// <summary>
 /// 推送给前端的统一消息体

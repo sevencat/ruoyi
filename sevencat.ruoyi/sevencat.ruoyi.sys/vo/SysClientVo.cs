@@ -1,4 +1,5 @@
 ﻿using MiniExcelLibs.Attributes;
+using sevencat.ruoyi.common.excel;
 using sevencat.ruoyi.common.excel.attr;
 
 namespace sevencat.ruoyi.sys.vo;
@@ -91,6 +92,7 @@ public class SysClientVo
 	// Java 原注解 @ExcelProperty(value = "状态", converter = ExcelDictConvert.class) + @ExcelDictFormat(readConverterExp = "0=正常,1=停用")
 	// MiniExcel 无字典转换注解，导出时需自行把状态映射为「正常/停用」（例如另建一个带展示字段的导出模型）
 	[ExcelColumn(Name = "状态")]
+	[ExcelConvert(typeof(ExcelDictConvert))]
 	[ExcelDictFormat(ReadConverterExp = "0=正常,1=停用")]
 	public string Status { get; set; }
 }

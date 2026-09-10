@@ -1,4 +1,5 @@
-﻿using sevencat.ruoyi.sys.entity.dto;
+﻿using sevencat.ruoyi.sys.constant;
+using sevencat.ruoyi.sys.dto;
 
 namespace sevencat.ruoyi.sys.entity;
 
@@ -134,5 +135,15 @@ public class LoginUser
 		}
 
 		return $"{UserType}:{UserId}";
+	}
+
+	public bool IsSuperAdmin()
+	{
+		return SystemConstants.SUPER_ADMIN_USER_ID == UserId;
+	}
+
+	public static bool IsSuperAdmin(long UserId)
+	{
+		return SystemConstants.SUPER_ADMIN_USER_ID == UserId;
 	}
 }
