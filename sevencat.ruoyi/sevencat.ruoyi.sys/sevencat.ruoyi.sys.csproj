@@ -13,6 +13,7 @@
     <ItemGroup>
         <PackageReference Include="Autofac" Version="9.3.1"/>
         <PackageReference Include="BCrypt.Net-Next" Version="4.2.0"/>
+        <PackageReference Include="MiniExcel" Version="1.46.0" />
         <PackageReference Include="NLog" Version="6.2.0"/>
         <PackageReference Include="Sevencat.Autofac.Annotation" Version="1.0.7"/>
         <PackageReference Include="sevencat.common" Version="1.0.9" />

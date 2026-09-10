@@ -1,8 +1,17 @@
-﻿namespace sevencat.ruoyi.sys.vo;
+﻿using System.Text.Json.Serialization;
+
+namespace sevencat.ruoyi.sys.vo;
 
 public class LoginVo
 {
+	[JsonPropertyName("access_token")]
+	public string AccessToken { get; set; }
 	
+	[JsonPropertyName("expire_in")]
+	public long expireqIn { get; set; }
+	
+	[JsonPropertyName("client_id")]
+	public string ClientId { get; set; }
 }
 
 public class LoginBody

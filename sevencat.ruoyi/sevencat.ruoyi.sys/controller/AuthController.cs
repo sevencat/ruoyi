@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.captcha.config;
-using sevencat.ruoyi.sys.constant;
+using sevencat.ruoyi.core.constant;
+using sevencat.ruoyi.sys.service;
 using sevencat.ruoyi.sys.vo;
-using SixLabors.ImageSharp;
 using SixLaborsCaptcha.Core;
 using ZiggyCreatures.Caching.Fusion;
 
@@ -12,10 +12,13 @@ namespace sevencat.ruoyi.sys.controller;
 [ApiController]
 [Route("/api/auth")]
 public class AuthController(
+	LoginService loginService,
 	CaptchaProperties captchaProperties,
 	SixLaborsCaptchaModule slc,
 	IFusionCache cache)
 {
+	public record CaptchaVo(bool CaptchaEnabled, string Uuid, string Img);
+
 	[HttpGet("code")]
 	public async Task<CommonResult<CaptchaVo>> Code()
 	{
@@ -34,11 +37,11 @@ public class AuthController(
 		return CommonResult.Success(new CaptchaVo(true, uuid, Convert.ToBase64String(result)));
 	}
 
-	public record CaptchaVo(bool captchaEnabled, string uuid, string img);
 
 	[HttpPost("login")]
-	public CommonResult<LoginVo> Login([FromBody] LoginBody req)
+	public async Task<CommonResult<LoginVo>> Login([FromBody] LoginBody req)
 	{
-		return CommonResult.Fail("暂未实现");
+		var rsp = await loginService.login(req);
+		return rsp.ToCommonResult();
 	}
 }

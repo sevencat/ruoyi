@@ -13,6 +13,7 @@ using Scalar.AspNetCore;
 using sevencat.ruoyi.common;
 using sevencat.ruoyi.core;
 using sevencat.ruoyi.sys;
+using sevencat.ruoyi.web;
 using sevencat.ruoyi.web.proxy;
 
 namespace sevencat.ruoyi;
@@ -85,7 +86,7 @@ public class Program
 
 
 		var app = builder.Build();
-
+		app.UseMiddleware<GlobalExceptionMiddleware>();
 		// Configure the HTTP request pipeline.
 		if (!app.Environment.IsDevelopment())
 		{

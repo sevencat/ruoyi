@@ -1,4 +1,4 @@
-﻿namespace sevencat.ruoyi.sys.constant;
+﻿namespace sevencat.ruoyi.core.constant;
 
 public class GlobalConstants
 {
@@ -26,4 +26,9 @@ public class GlobalConstants
 	 * 三方认证 redis key
 	 */
 	public const string SOCIAL_AUTH_CODE_KEY = GLOBAL_REDIS_KEY + "social_auth_codes:";
+
+	/**
+	 * 验证码 redis key
+	 */
+	public const string USER_TOKEN_KEY = GLOBAL_REDIS_KEY + "user_token:";
 }
