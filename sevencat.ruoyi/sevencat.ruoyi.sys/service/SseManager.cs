@@ -146,6 +146,40 @@ public class SseManager
 			return;
 		}
 
+		await KickWriterAsync(writer, data, @event);
+
+		// 该用户已无在线连接时，移除用户节点
+		if (userTokens.IsEmpty)
+		{
+			_onlineUsers.TryRemove(userId, out _);
+		}
+	}
+
+	/// <summary>
+	/// 强退指定用户下的所有连接：逐个发送被踢下线通知后关闭数据流。
+	/// </summary>
+	/// <param name="userId">用户 id</param>
+	/// <param name="data">通知数据，默认 <see cref="KickedMessage"/></param>
+	/// <param name="event">通知事件名，默认 message</param>
+	public async Task KickOffAll(long userId, string data = KickedMessage, string @event = "message")
+	{
+		// 整体移除该用户节点，避免后续消息再写入即将关闭的连接
+		if (!_onlineUsers.TryRemove(userId, out var userTokens))
+		{
+			return;
+		}
+
+		foreach (var (_, writer) in userTokens)
+		{
+			await KickWriterAsync(writer, data, @event);
+		}
+	}
+
+	/// <summary>
+	/// 向单个连接发送被踢下线通知并关闭数据流。
+	/// </summary>
+	private async Task KickWriterAsync(StreamWriter writer, string data, string @event)
+	{
 		try
 		{
 			// 通知客户端已被踢下线
@@ -159,12 +193,6 @@ public class SseManager
 		{
 			// 通知发送完毕后关闭数据流
 			await writer.DisposeAsync();
-		}
-
-		// 该用户已无在线连接时，移除用户节点
-		if (userTokens.IsEmpty)
-		{
-			_onlineUsers.TryRemove(userId, out _);
 		}
 	}
 }

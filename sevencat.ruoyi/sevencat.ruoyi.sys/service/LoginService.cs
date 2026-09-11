@@ -165,6 +165,7 @@ public class LoginService(
 		{
 			token = token.AsSpan(7).ToString();
 		}
+
 		//从本地cache里拿
 		var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
 		var getrsp = await cache.GetOrDefaultAsync<LoginUser>(cachekey);
@@ -356,7 +357,7 @@ public class LoginService(
 		if (lu == null)
 			return false;
 		var permissions = lu.MenuPermission;
-		if (permissions.Contains("*:*:*"))
+		if (lu.IsSuperAdmin())
 			return true;
 		return permissions.Contains(perm);
 	}
