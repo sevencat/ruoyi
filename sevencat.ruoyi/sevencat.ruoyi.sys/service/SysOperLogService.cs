@@ -1,6 +1,7 @@
 using Autofac.Annotation;
 using FreeSql;
 using MapsterMapper;
+using sevencat.ruoyi.common.db;
 using sevencat.ruoyi.common.db.util;
 using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.common.util;
@@ -14,7 +15,7 @@ namespace sevencat.ruoyi.sys.service;
 /// 操作日志业务层（对应 Java 的 <c>ISysOperLogService</c> / <c>SysOperLogServiceImpl</c>）
 /// </summary>
 [Component]
-public class SysOperLogService(IFreeSql fsql, IMapper mapper)
+public class SysOperLogService(IFreeSql fsql, IMapper mapper, IIdGen idgen)
 {
 	private static readonly NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
@@ -100,6 +101,7 @@ public class SysOperLogService(IFreeSql fsql, IMapper mapper)
 		log.OperTime ??= DateTime.Now;
 		try
 		{
+			log.OperId = idgen.NextId();
 			return await fsql.Insert(log).ExecuteAffrowsAsync();
 		}
 		catch (Exception ex)

@@ -80,7 +80,7 @@ public class SysNoticeController(
 
 		// Java 为 messageService.publishAll(...)，即「写入 sys_message + PushHelper 推送在线用户」；
 		// C# 端暂无 SSE / WebSocket 推送设施，仅把公告写入消息盒子，前端通过消息盒子接口读取
-		await messageService.StoreAll(PushPayloadDTO.Of(
+		await messageService.PublishAll(PushPayloadDTO.Of(
 			PushTypeEnum.Notice,
 			PushSourceEnum.Notice,
 			$"[{type}] {notice.NoticeTitle}",

@@ -59,6 +59,45 @@ public static class DataPermissionHelper
 	}
 
 	/// <summary>
+	/// 在忽略数据权限的上下文中执行异步操作
+	/// （对应 Java 的 <c>DataPermissionHelper.ignore</c>；C# 端数据访问为异步语义，故需异步版本）
+	/// </summary>
+	/// <param name="func">待执行的异步操作</param>
+	public static async Task IgnoreAsync(Func<Task> func)
+	{
+		var depth = IgnoreDepth.Value;
+		IgnoreDepth.Value = depth + 1;
+		try
+		{
+			await func();
+		}
+		finally
+		{
+			IgnoreDepth.Value = depth;
+		}
+	}
+
+	/// <summary>
+	/// 在忽略数据权限的上下文中执行异步操作并返回结果
+	/// </summary>
+	/// <typeparam name="T">返回值类型</typeparam>
+	/// <param name="func">待执行的异步操作</param>
+	/// <returns>操作结果</returns>
+	public static async Task<T> IgnoreAsync<T>(Func<Task<T>> func)
+	{
+		var depth = IgnoreDepth.Value;
+		IgnoreDepth.Value = depth + 1;
+		try
+		{
+			return await func();
+		}
+		finally
+		{
+			IgnoreDepth.Value = depth;
+		}
+	}
+
+	/// <summary>
 	/// 表达式树占位方法：仅用于让 Freesql 在解析表达式时命中 <c>Aop.ParseExpression</c>，
 	/// 运行期不会被真正调用，真实的数据权限条件由 <see cref="DataPermissionFilter"/> 替换。
 	/// </summary>

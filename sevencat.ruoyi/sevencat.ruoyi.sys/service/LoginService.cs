@@ -159,6 +159,18 @@ public class LoginService(
 		return await TryGetLoginModel(httpctx);
 	}
 
+	public async Task<LoginUser> TryGetLoginModelFromCache(string token)
+	{
+		if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
+		{
+			token = token.AsSpan(7).ToString();
+		}
+		//从本地cache里拿
+		var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
+		var getrsp = await cache.GetOrDefaultAsync<LoginUser>(cachekey);
+		return getrsp;
+	}
+
 	public async Task<LoginUser> TryGetLoginModel(HttpContext httpctx)
 	{
 		if (httpctx.Items.TryGetValue(TokenHttpKey, out var loginmodel))
@@ -170,21 +182,33 @@ public class LoginService(
 		if (string.IsNullOrWhiteSpace(token))
 			return null;
 		//这里有可能是Bearer
+		var ret = await TryGetLoginModelFromCache(token);
+		if (ret != null)
+		{
+			httpctx.Items.Add(TokenHttpKey, ret);
+		}
+
+		return ret;
+	}
+
+	/// <summary>
+	/// 按令牌查询登录用户（供后台线程使用：此时没有 HttpContext，走不了 <see cref="GetLoginUser"/>）
+	/// </summary>
+	/// <param name="token">访问令牌，允许带 <c>Bearer </c> 前缀</param>
+	/// <returns>登录用户；令牌为空或已过期时返回 null</returns>
+	public async Task<LoginUser> GetLoginUserByToken(string token)
+	{
+		if (token.IsNullOrWhiteSpace())
+		{
+			return null;
+		}
+
 		if (token.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
 		{
 			token = token.AsSpan(7).ToString();
 		}
 
-		//从本地cache里拿
-		var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
-		var getrsp = await cache.GetOrDefaultAsync<LoginUser>(cachekey);
-		//3.写到http里面，供当前session使用，或者可以用autofac的这个来用。
-		if (getrsp != null)
-		{
-			httpctx.Items.Add(TokenHttpKey, getrsp);
-		}
-
-		return getrsp;
+		return await cache.GetOrDefaultAsync<LoginUser>(GlobalConstants.USER_TOKEN_KEY + token);
 	}
 
 	public string TryGetToken(HttpContext httpctx)
@@ -324,5 +348,27 @@ public class LoginService(
 		{
 			// ignored
 		}
+	}
+
+	public async Task<bool> CheckPermissions(string perm)
+	{
+		var lu = await GetLoginUser();
+		if (lu == null)
+			return false;
+		var permissions = lu.MenuPermission;
+		if (permissions.Contains("*:*:*"))
+			return true;
+		return permissions.Contains(perm);
+	}
+
+	public async Task<bool> CheckRoles(params string[] roles)
+	{
+		var lu = await GetLoginUser();
+		if (lu == null)
+			return false;
+		if (lu.IsSuperAdmin())
+			return true;
+		var rolePermissions = lu.RolePermission;
+		return roles.Any(role => rolePermissions.Contains(role));
 	}
 }

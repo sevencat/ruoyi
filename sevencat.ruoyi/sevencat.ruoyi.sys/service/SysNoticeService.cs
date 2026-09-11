@@ -2,6 +2,7 @@ using Autofac.Annotation;
 using FreeSql;
 using MapsterMapper;
 using sevencat.common;
+using sevencat.ruoyi.common.db;
 using sevencat.ruoyi.common.db.util;
 using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.common.security;
@@ -20,7 +21,7 @@ namespace sevencat.ruoyi.sys.service;
 /// 由翻译插件自动回填 <c>createByName</c>，C# 端无翻译注解，改为查询后按 <c>CreateBy</c> 手工回填。
 /// </remarks>
 [Component]
-public class SysNoticeService(IFreeSql fsql, IMapper mapper)
+public class SysNoticeService(IFreeSql fsql, IMapper mapper,IIdGen idgen)
 {
 	/// <summary>
 	/// 分页查询通知公告列表（对应 Java 的 <c>selectPageNoticeList</c>）
@@ -69,6 +70,7 @@ public class SysNoticeService(IFreeSql fsql, IMapper mapper)
 		return list;
 	}
 
+
 	/// <summary>
 	/// 新增公告（对应 Java 的 <c>insertNotice</c>）
 	/// </summary>
@@ -79,7 +81,7 @@ public class SysNoticeService(IFreeSql fsql, IMapper mapper)
 		var notice = bo.MapTo<TSysNotice>(mapper);
 		// 对应 Java 的 InjectionMetaObjectHandler 自动填充创建人
 		notice.CreateBy ??= await LoginHelper.GetLoginUid();
-
+		notice.NoticeId = idgen.NextId();
 		var rows = await fsql.Insert(notice).ExecuteAffrowsAsync();
 		// 对应 Java 的 bo.setNoticeId(notice.getNoticeId())，供调用方接着广播公告
 		bo.NoticeId = notice.NoticeId;

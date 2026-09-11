@@ -1,6 +1,9 @@
 ﻿using System.Text.Json;
 using Autofac.Annotation;
 using MapsterMapper;
+using sevencat.common;
+using sevencat.ruoyi.common.db;
+using sevencat.ruoyi.common.db.util;
 using sevencat.ruoyi.common.enums;
 using sevencat.ruoyi.common.security;
 using sevencat.ruoyi.sys.dto;
@@ -10,7 +13,11 @@ using sevencat.ruoyi.sys.vo;
 namespace sevencat.ruoyi.sys.service;
 
 [Component]
-public class SysMessageService(IFreeSql fsql, IMapper mapper)
+public class SysMessageService(
+	IFreeSql fsql,
+	IMapper mapper,
+	IIdGen idgen,
+	SseManager sseManager)
 {
 	/// <summary>
 	/// 全局广播用户标识（所有用户可见）
@@ -66,6 +73,7 @@ public class SysMessageService(IFreeSql fsql, IMapper mapper)
 		return list.Select(BuildVo).ToList();
 	}
 
+	
 	/// <summary>
 	/// 存储全局广播消息到数据库（对应 Java 的 <c>storeAll</c>）
 	/// </summary>
@@ -75,7 +83,7 @@ public class SysMessageService(IFreeSql fsql, IMapper mapper)
 	/// Java 的 <c>publishAll</c> 为「<c>PushHelper.publishAll(storeAll(payload))</c>」，即先落库再推送在线用户；
 	/// C# 端暂无 SSE / WebSocket 推送设施（PushHelper），故只保留落库部分，前端经消息盒子接口读取。
 	/// </remarks>
-	public async Task<PushPayloadDTO> StoreAll(PushPayloadDTO payload)
+	public async Task<PushPayloadDTO> PublishAll(PushPayloadDTO payload)
 	{
 		if (payload == null || !SupportsMessageBox(payload))
 		{
@@ -87,9 +95,11 @@ public class SysMessageService(IFreeSql fsql, IMapper mapper)
 		// 消息盒子按创建时间（近30天）过滤，创建时间必须写入
 		message.CreateBy ??= await LoginHelper.GetLoginUid();
 		message.CreateTime ??= DateTime.Now;
+		message.MessageId = idgen.NextId();
 
 		await fsql.Insert(message).ExecuteAffrowsAsync();
 		payload.MessageId = message.MessageId;
+		await sseManager.BroadcastAsync(payload);
 		return payload;
 	}
 

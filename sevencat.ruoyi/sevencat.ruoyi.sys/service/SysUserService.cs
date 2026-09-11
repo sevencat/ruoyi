@@ -138,6 +138,47 @@ public class SysUserService(
 	}
 
 	/// <summary>
+	/// 查询用户所属角色组（对应 Java 的 <c>selectUserRoleGroup</c>）
+	/// </summary>
+	/// <param name="userId">用户ID</param>
+	/// <returns>角色名称按「,」拼接的字符串，无角色时返回空串</returns>
+	public async Task<string> SelectUserRoleGroup(long userId)
+	{
+		var list = await roleService.SelectRolesByUserId(userId);
+		if (list.Count == 0)
+		{
+			return string.Empty;
+		}
+
+		// 对应 Java 的 StreamUtils.join(list, SysRoleVo::getRoleName)：以 "," 拼接并过滤 null
+		return string.Join(",", list.Select(x => x.RoleName).Where(name => name != null));
+	}
+
+	/// <summary>
+	/// 查询用户所属岗位组（对应 Java 的 <c>selectUserPostGroup</c>）
+	/// </summary>
+	/// <param name="userId">用户ID</param>
+	/// <returns>岗位名称按「,」拼接的字符串，无岗位时返回空串</returns>
+	public async Task<string> SelectUserPostGroup(long userId)
+	{
+		// 对应 Java 的 postMapper.selectPostsByUserId：
+		// sys_user_post 左连 sys_post 取 post_name；MyBatis-Plus 的 @TableLogic 会附加 del_flag = '0'
+		var postNames = await fsql.Select<TSysUserPost, TSysPost>()
+			.LeftJoin(x => x.t1.PostId == x.t2.PostId)
+			.Where(x => x.t1.UserId == userId)
+			.Where(x => x.t2.DelFlag == SystemConstants.NORMAL)
+			.ToListAsync(x => x.t2.PostName);
+
+		if (postNames.Count == 0)
+		{
+			return string.Empty;
+		}
+
+		// 对应 Java 的 StreamUtils.join(list, SysPostVo::getPostName)
+		return string.Join(",", postNames.Where(name => name != null));
+	}
+
+	/// <summary>
 	/// 根据用户ID列表和部门ID查询用户基础信息（对应 Java 的 <c>selectUserByIds</c>）
 	/// </summary>
 	/// <param name="userIds">用户ID列表，为空时不过滤</param>
@@ -362,6 +403,46 @@ public class SysUserService(
 			.SetSourceIgnore(sysUser)
 			.Where(a => a.UserId == userId)
 			.ExecuteAffrowsAsync();
+	}
+
+	/// <summary>
+	/// 修改用户个人资料（对应 Java 的 <c>updateUserProfile</c>）
+	/// </summary>
+	/// <param name="user">个人资料（仅昵称/头像/手机号/邮箱/性别参与更新）</param>
+	/// <returns>影响行数</returns>
+	public async Task<int> UpdateUserProfile(SysUserBo user)
+	{
+		var userId = user.UserId ?? 0L;
+
+		// 对应 Java 的 setIfPresent：字段非 null 才参与更新（空串仍会更新）
+		var update = fsql.Update<TSysUser>();
+		if (user.NickName != null)
+		{
+			update = update.Set(x => x.NickName, user.NickName);
+		}
+
+		if (user.Avatar != null)
+		{
+			update = update.Set(x => x.Avatar, user.Avatar);
+		}
+
+		if (user.PhoneNumber != null)
+		{
+			update = update.Set(x => x.PhoneNumber, user.PhoneNumber);
+		}
+
+		if (user.Email != null)
+		{
+			update = update.Set(x => x.Email, user.Email);
+		}
+
+		if (user.Gender != null)
+		{
+			update = update.Set(x => x.Gender, user.Gender);
+		}
+
+		// Java 的 updateUserProfile 未维护 updateTime / updateBy，此处保持一致
+		return await update.Where(x => x.UserId == userId).ExecuteAffrowsAsync();
 	}
 
 	/// <summary>

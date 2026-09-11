@@ -1,6 +1,6 @@
 ﻿namespace sevencat.ruoyi.common.db.util;
 
-public class SnowflakeIdWorker
+public class SnowflakeIdWorker : IIdGen
 {
 	// 基准时间戳 (可以改成项目启动的时间，比如 2026-01-01)
 	private readonly long twepoch = 1767225600000L;

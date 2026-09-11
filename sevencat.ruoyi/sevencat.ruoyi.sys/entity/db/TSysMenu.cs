@@ -110,6 +110,12 @@ public class TSysMenu : TBaseEntity
 	[Column(Name = "ext", StringLength = 2000, IsNullable = true)]
 	public string Ext { get; set; } = string.Empty;
 
+	/// <summary>
+	/// 备注
+	/// </summary>
+	[Column(Name = "remark", StringLength = 500, IsNullable = true, Position = -1)]
+	public string Remark { get; set; }
+
 	[Column(IsIgnore = true)]
 	public string ParentName { get; set; }
 

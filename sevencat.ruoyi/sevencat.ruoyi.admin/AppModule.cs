@@ -6,6 +6,8 @@ using Hangfire;
 using Hangfire.MemoryStorage;
 using Microsoft.Extensions.FileProviders;
 using Scalar.AspNetCore;
+using sevencat.ruoyi.config.impl;
+using sevencat.ruoyi.sys.log;
 using sevencat.ruoyi.web;
 using sevencat.ruoyi.web.proxy;
 
@@ -25,7 +27,6 @@ public class AppModule(IConfiguration config) : Module
 
 	protected void ConfigServices(ServiceCollection Services)
 	{
-		
 		Services.AddHttpContextAccessor();
 
 		// /api/** 兜底转发
@@ -61,6 +62,9 @@ public class AppModule(IConfiguration config) : Module
 			options.SchedulePollingInterval = TimeSpan.FromSeconds(2);
 			options.HeartbeatInterval = TimeSpan.FromSeconds(2);
 		});
+
+		// 操作日志写库后台线程：请求线程只把日志入队，落库在后台完成
+		Services.AddHostedService<OperLogWorker>();
 	}
 
 	public static void SetupPipeline(WebApplication app, IConfiguration config)
@@ -79,8 +83,13 @@ public class AppModule(IConfiguration config) : Module
 		app.MapControllers();
 		// 未被本项目处理的 /api/** 请求转发到目标地址
 		app.MapApiProxy(config);
-		app.MapHangfireDashboard();
+		app.MapHangfireDashboard("/hf", new DashboardOptions
+		{
+			Authorization = [new MyDashboardFilter()]
+		});
+		Log.Info("hangfire后缀为/hf");
 
+		app.UseWebSockets();
 		app.MapOpenApi();
 		app.MapScalarApiReference();
 		app.MapGet("/", () => Results.Redirect("/index.html"));

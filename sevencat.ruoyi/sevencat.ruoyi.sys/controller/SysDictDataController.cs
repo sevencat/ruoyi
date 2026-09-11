@@ -78,6 +78,7 @@ public class SysDictDataController(
 	/// <param name="dictType">字典类型</param>
 	/// <returns>字典数据列表</returns>
 	[HttpGet("type/{dictType}")]
+	[Log("字典数据", BusinessTypeEnum.Insert)]
 	public async Task<CommonResult<List<SysDictDataVo>>> DictType([FromRoute] string dictType)
 	{
 		var data = await dictTypeService.SelectDictDataByType(dictType);

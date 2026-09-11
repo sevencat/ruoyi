@@ -20,7 +20,7 @@ public class TSysOperLog
 	/// <summary>
 	/// 日志主键
 	/// </summary>
-	[Column(Name = "oper_id", IsPrimary = true,IsIdentity = true)]
+	[Column(Name = "oper_id", IsPrimary = true)]
 	public long OperId { get; set; }
 
 	/// <summary>

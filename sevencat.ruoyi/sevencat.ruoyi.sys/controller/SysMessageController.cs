@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.security;
 using sevencat.ruoyi.sys.service;
@@ -10,6 +11,9 @@ namespace sevencat.ruoyi.sys.controller;
 [Route("/api/resource/message")]
 public class SysMessageController(
 	IFreeSql fsql,
+	IHttpContextAccessor httpCtxAccessor,
+	SseManager sseManager,
+	LoginService loginService,
 	SysMessageService messageService)
 {
 	/// <summary>
@@ -28,5 +32,30 @@ public class SysMessageController(
 			WorkflowList = await messageService.SelectMessageList(SysMessageService.CATEGORY_WORKFLOW, userId)
 		};
 		return box.ToCommonResult();
+	}
+	
+	[HttpGet]
+	public async Task SseConnect([FromQuery] string Authorization, CancellationToken cancellationToken)
+	{
+		var httpcontext = httpCtxAccessor.HttpContext;
+		// === 认证逻辑开始 ===
+		if (string.IsNullOrEmpty(Authorization))
+		{
+			httpcontext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+			return;
+		}
+        
+		// 假设这里解析 Token 拿到了真实的 UserId
+		var lu = await loginService.GetLoginUserByToken(Authorization);
+		if (lu == null)
+		{
+			httpcontext.Response.StatusCode = StatusCodes.Status401Unauthorized;
+			return;
+		}
+		// === 认证逻辑结束 ===
+
+		// 交给管理器接管，保持长连接
+		var userId = lu.UserId.Value;
+		await sseManager.RegisterClientAsync(userId, httpcontext, cancellationToken);
 	}
 }

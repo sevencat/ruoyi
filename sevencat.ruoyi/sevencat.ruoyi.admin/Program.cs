@@ -7,8 +7,8 @@ using Autofac.Extensions.DependencyInjection;
 using dotenv.net;
 using NLog.Extensions.Logging;
 using sevencat.ruoyi.common;
+using sevencat.ruoyi.config.impl;
 using sevencat.ruoyi.sys;
-using sevencat.ruoyi.sys.util;
 
 namespace sevencat.ruoyi;
 
@@ -27,17 +27,15 @@ public class Program
 		var afsp = new AutofacServiceProviderFactory(x => ConfigIoc(x, config));
 		builder.Host.UseServiceProviderFactory(afsp);
 
-		var mvcBuilder = builder.Services.AddControllers(options =>
-		{
-			// 全局注册操作日志切面（对应 Java 的 LogAspect），仅对打了 [Log] 特性的 action 生效
-			options.Filters.Add<OperLogFilter>();
-		});
+		// 操作日志切面（对应 Java 的 LogAspect）由 [Log] 特性自身承载（LogAttribute : ActionFilterAttribute），无需全局注册
+		var mvcBuilder = builder.Services.AddControllers();
 		mvcBuilder.AddControllersAsServices().AddJsonOptions((opts) =>
 		{
 			opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
 			opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
 			opts.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
-			// 时间统一格式化为 "yyyy-MM-dd HH:mm:ss"
+			// 时间统一格式化为 "yyyy-MM-dd HH:mm:ss"5
+			opts.JsonSerializerOptions.Converters.Add(new LongToStringConverter());
 			opts.JsonSerializerOptions.Converters.Add(new sevencat.common.json.JsonConverterUtil.DateTimeConverter());
 			opts.JsonSerializerOptions.Converters.Add(
 				new sevencat.common.json.JsonConverterUtil.DateTimeNullConverter());

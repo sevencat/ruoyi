@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using MiniExcelLibs.Attributes;
 using sevencat.ruoyi.common.excel.attr;
 
@@ -15,11 +16,13 @@ public class SysDeptVo
 	/// 部门id
 	/// </summary>
 	[ExcelColumn(Name = "部门id")]
+	[JsonNumberHandling(JsonNumberHandling.WriteAsString)]
 	public long? DeptId { get; set; }
 
 	/// <summary>
 	/// 父部门id
 	/// </summary>
+	[JsonNumberHandling(JsonNumberHandling.WriteAsString)]
 	public long? ParentId { get; set; }
 
 	/// <summary>
