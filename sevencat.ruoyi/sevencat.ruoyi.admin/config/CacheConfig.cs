@@ -27,30 +27,21 @@ public class CacheConfig
 	}
 
 	[Bean]
-	public IDistributedCache CreateDCache(IConfiguration cfg)
+	public RedisClient CreateRedisClient(IConfiguration cfg)
 	{
 		var redisurl = cfg.GetValue<string>("cache:redisurl");
 		var cli = new RedisClient(redisurl);
 		cli.Serialize = obj => obj.ToJson();
 		cli.Deserialize = (json, type) => JsonSerializer.Deserialize(json, type);
+		return cli;
+	}
+
+	[Bean]
+	public IDistributedCache CreateDCache(RedisClient cli)
+	{
 		var distributedCache = new DistributedCache(cli);
 		return distributedCache;
 	}
-
-	// [Bean]
-	// public IRedisClient CreateIRedisClient(RedisClient rc)
-	// {
-	// 	return rc;
-	// }
-	//
-	// [Bean]
-	// public RedisClient CreateRedisClient([Value("cache:redisurl")] string redisurl)
-	// {
-	// 	var cli = new RedisClient(redisurl);
-	// 	cli.Serialize = obj => obj.ToJson();
-	// 	cli.Deserialize = (json, type) => JsonSerializer.Deserialize(json, type);
-	// 	return cli;
-	// }
 
 	[Bean]
 	public IFusionCache CreateCache(IDistributedCache dc, IMemoryCache mc)

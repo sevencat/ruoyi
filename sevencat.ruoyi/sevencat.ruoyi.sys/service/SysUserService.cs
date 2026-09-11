@@ -176,6 +176,67 @@ public class SysUserService(
 	}
 
 	/// <summary>
+	/// 查询角色已分配的用户列表（对应 Java 的 <c>selectAllocatedList</c>）
+	/// </summary>
+	/// <param name="user">用户查询条件（需包含 roleId）</param>
+	/// <param name="pageQuery">分页参数</param>
+	/// <returns>用户分页列表（已回填部门名称）</returns>
+	public async Task<PageResult<SysUserVo>> SelectAllocatedList(SysUserBo user, PageQuery2 pageQuery)
+	{
+		var q = BuildUserRoleJoinQuery(user);
+
+		// 对应 Java 的 eq("r", SysRole::getRoleId, user.getRoleId())
+		if (user.RoleId.HasValue)
+		{
+			var roleUserIds = await SelectUserIdsByRoleId(user.RoleId);
+			q = roleUserIds.Count == 0 ? q.Where(x => false) : q.Where(x => roleUserIds.Contains(x.UserId));
+		}
+
+		var result = (await q.ToPage(pageQuery)).MapTo<SysUserVo>(mapper);
+		await FillDeptName(result.Rows);
+		return result;
+	}
+
+	/// <summary>
+	/// 查询角色未分配的用户列表（对应 Java 的 <c>selectUnallocatedList</c>）
+	/// </summary>
+	/// <param name="user">用户查询条件（需包含 roleId）</param>
+	/// <param name="pageQuery">分页参数</param>
+	/// <returns>用户分页列表（已回填部门名称）</returns>
+	public async Task<PageResult<SysUserVo>> SelectUnallocatedList(SysUserBo user, PageQuery2 pageQuery)
+	{
+		var roleUserIds = await SelectUserIdsByRoleId(user.RoleId);
+		var q = BuildUserRoleJoinQuery(user);
+
+		// 对应 Java 的 notIn(SysUser::getUserId, userIds)
+		if (roleUserIds.Count > 0)
+		{
+			q = q.Where(x => !roleUserIds.Contains(x.UserId));
+		}
+
+		var result = (await q.ToPage(pageQuery)).MapTo<SysUserVo>(mapper);
+		await FillDeptName(result.Rows);
+		return result;
+	}
+
+	/// <summary>
+	/// 查询角色已关联的用户ID列表（对应 Java 的 <c>SysUserMapper.selectUserIdsByRoleId</c>）
+	/// </summary>
+	/// <param name="roleId">角色ID</param>
+	/// <returns>用户ID列表</returns>
+	public async Task<List<long>> SelectUserIdsByRoleId(long? roleId)
+	{
+		if (!roleId.HasValue)
+		{
+			return [];
+		}
+
+		return await fsql.Select<TSysUserRole>()
+			.Where(r => r.RoleId == roleId.Value)
+			.ToListAsync(r => r.UserId);
+	}
+
+	/// <summary>
 	/// 校验用户账号是否唯一（对应 Java 的 <c>checkUserNameUnique</c>）
 	/// </summary>
 	/// <param name="user">用户信息</param>
@@ -530,6 +591,25 @@ public class SysUserService(
 		}
 
 		return q.OrderBy(x => x.UserId);
+	}
+
+	/// <summary>
+	/// 构造「用户 + 角色」关联查询条件（对应 Java 的 <c>buildUserRoleJoinWrapper</c>）
+	/// </summary>
+	/// <param name="user">用户筛选条件</param>
+	/// <returns>用户列表查询对象</returns>
+	/// <remarks>
+	/// Java 侧通过 left join sys_dept / sys_user_role / sys_role 并 distinct 实现；
+	/// C# 端按用户维度查询，角色关联由调用方以 in / notIn 过滤，语义等价且避免 join 去重。
+	/// </remarks>
+	private ISelect<TSysUser> BuildUserRoleJoinQuery(SysUserBo user)
+	{
+		return fsql.Select<TSysUser>()
+			.Where(x => x.DelFlag == SystemConstants.NORMAL)
+			.WhereLike(user.UserName, x => x.UserName)
+			.WhereHasTextEq(user.Status, x => x.Status)
+			.WhereLike(user.PhoneNumber, x => x.PhoneNumber)
+			.OrderBy(x => x.UserId);
 	}
 
 	/// <summary>

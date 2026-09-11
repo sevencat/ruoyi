@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.entity;
+using sevencat.ruoyi.common.enums;
 using sevencat.ruoyi.common.excel;
+using sevencat.ruoyi.common.log.attr;
 using sevencat.ruoyi.common.security.attr;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.service;
@@ -46,7 +48,7 @@ public class SysConfigController(
 	/// 导出参数配置列表。
 	/// </summary>
 	/// <param name="config">查询条件</param>
-	// Java 原注解 @Log(title = "参数管理", businessType = BusinessType.EXPORT)：C# 端无操作日志切面，未实现
+	[Log("参数管理", BusinessTypeEnum.Export)]
 	[SaCheckPermission("system:config:export")]
 	[HttpPost("export")]
 	public async Task Export([FromQuery] SysConfigBo config)
@@ -85,7 +87,9 @@ public class SysConfigController(
 	/// </summary>
 	/// <param name="config">参数配置</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	// Java 原注解为裸 @Log（未指定 title/businessType），这里按模块补齐标题与业务类型，便于日志页面查看
+	[Log("参数管理", BusinessTypeEnum.Insert)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:config:add")]
 	[HttpPost]
 	public async Task<CommonResult> Add([FromBody] SysConfigBo config)
@@ -104,7 +108,9 @@ public class SysConfigController(
 	/// </summary>
 	/// <param name="config">参数配置</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	// Java 原注解为裸 @Log（未指定 title/businessType），这里按模块补齐标题与业务类型，便于日志页面查看
+	[Log("参数管理", BusinessTypeEnum.Update)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:config:edit")]
 	[HttpPut]
 	public async Task<CommonResult> Edit([FromBody] SysConfigBo config)
@@ -123,7 +129,9 @@ public class SysConfigController(
 	/// </summary>
 	/// <param name="config">参数配置</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	// Java 原注解为裸 @Log（未指定 title/businessType），这里按模块补齐标题与业务类型，便于日志页面查看
+	[Log("参数管理", BusinessTypeEnum.Update)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:config:edit")]
 	[HttpPut("updateByKey")]
 	public async Task<CommonResult> UpdateByKey([FromBody] SysConfigBo config)

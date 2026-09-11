@@ -3,6 +3,7 @@ using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.common.enums;
+using sevencat.ruoyi.common.log.attr;
 using sevencat.ruoyi.common.security.attr;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.dto;
@@ -53,7 +54,8 @@ public class SysNoticeController(
 	/// </summary>
 	/// <param name="notice">公告参数</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "通知公告", businessType = BusinessType.INSERT) @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	[Log("通知公告", BusinessTypeEnum.Insert)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:notice:add")]
 	[HttpPost]
 	public async Task<CommonResult> Add([FromBody] SysNoticeBo notice)
@@ -93,7 +95,8 @@ public class SysNoticeController(
 	/// </summary>
 	/// <param name="notice">公告参数</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "通知公告", businessType = BusinessType.UPDATE) @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	[Log("通知公告", BusinessTypeEnum.Update)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:notice:edit")]
 	[HttpPut]
 	public async Task<CommonResult> Edit([FromBody] SysNoticeBo notice)
@@ -106,7 +109,7 @@ public class SysNoticeController(
 	/// </summary>
 	/// <param name="noticeIds">公告ID串，形如 1,2,3</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "通知公告", businessType = BusinessType.DELETE)：C# 端无操作日志切面，未实现
+	[Log("通知公告", BusinessTypeEnum.Delete)]
 	// Java 原注解 @PathVariable Long[] noticeIds：Spring 支持 1,2,3 形式，
 	// ASP.NET 的 long[] 只认可重复键，这里按字符串接收后自行切分
 	[SaCheckPermission("system:notice:remove")]

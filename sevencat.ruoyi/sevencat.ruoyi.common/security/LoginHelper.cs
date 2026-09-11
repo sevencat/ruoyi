@@ -1,4 +1,5 @@
 ﻿using Autofac.Util;
+using sevencat.ruoyi.common.entity;
 
 namespace sevencat.ruoyi.common.security;
 
@@ -9,5 +10,10 @@ public class LoginHelper
 	public static async Task<long?> GetLoginUid()
 	{
 		return await loginService.Value.GetLoginuid();
+	}
+
+	public static LoginUser FastGetLoginUser()
+	{
+		return loginService.Value.FastgetLoginUser();
 	}
 }

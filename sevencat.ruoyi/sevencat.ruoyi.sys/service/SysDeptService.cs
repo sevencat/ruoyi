@@ -19,7 +19,7 @@ namespace sevencat.ruoyi.sys.service;
 /// <remarks>
 /// Java 端部门信息缓存在 Redis（<c>CacheNames.SYS_DEPT</c> / <c>CacheNames.SYS_DEPT_AND_CHILD</c>），
 /// C# 端暂无该缓存，相关 <c>@Cacheable</c> / <c>@CacheEvict</c> / <c>CacheUtils.evict</c> 均无需实现。
-/// Java 接口中 <c>selectPageDeptList</c> / <c>selectDeptListByRoleId</c> / <c>selectDeptNameByIds</c> /
+/// Java 接口中 <c>selectPageDeptList</c> / <c>selectDeptNameByIds</c> /
 /// <c>selectDeptLeaderById</c> / <c>selectDeptsByList</c> / <c>selectDeptNamesByIds</c> 属于其他模块的调用入口，
 /// 本项目暂无调用方，未实现。
 /// </remarks>
@@ -68,6 +68,48 @@ public class SysDeptService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 			.Where(dept => IsDeptOrChild(dept, deptId))
 			.Select(dept => dept.DeptId)
 			.ToList();
+	}
+
+	/// <summary>
+	/// 根据角色ID查询部门树信息（对应 Java 的 <c>selectDeptListByRoleId</c>）
+	/// </summary>
+	/// <param name="roleId">角色ID</param>
+	/// <returns>选中的部门ID列表（已按部门树是否关联显示过滤父节点）</returns>
+	public async Task<List<long>> SelectDeptListByRoleId(long roleId)
+	{
+		var role = await fsql.Select<TSysRole>().Where(x => x.RoleId == roleId).FirstAsync();
+		if (role == null || !SystemConstants.NORMAL.Equals(role.Status))
+		{
+			return [];
+		}
+
+		var roleDeptIds = await fsql.Select<TSysRoleDept>()
+			.Where(x => x.RoleId == roleId)
+			.ToListAsync(x => x.DeptId);
+
+		if (roleDeptIds.Count == 0)
+		{
+			return [];
+		}
+
+		// 对应 Java 的 leftJoin(sys_role_dept) + eq(srd.role_id) 与 orderByAsc(parentId, orderNum)，
+		// 主表 sys_dept 的 del_flag = '0' 由 Java 的 @TableLogic 隐式追加
+		var depts = await fsql.Select<TSysDept>()
+			.Where(x => x.DelFlag == SystemConstants.NORMAL)
+			.Where(x => roleDeptIds.Contains(x.DeptId))
+			.OrderBy(x => x.ParentId)
+			.OrderBy(x => x.OrderNum)
+			.ToListAsync(x => new { x.DeptId, x.ParentId });
+
+		// 部门树选择项不关联显示（含未设置）时，直接返回全部已选部门
+		if (role.DeptCheckStrictly != true)
+		{
+			return depts.Select(x => x.DeptId).ToList();
+		}
+
+		// 父子联动：父节点虽被选中，但其子节点也已被选中时，父节点不返回（前端只需勾选叶子节点）
+		var parentIds = depts.Select(x => x.ParentId).ToHashSet();
+		return depts.Where(x => !parentIds.Contains(x.DeptId)).Select(x => x.DeptId).ToList();
 	}
 
 	/// <summary>

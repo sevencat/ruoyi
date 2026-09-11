@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.entity;
+using sevencat.ruoyi.common.enums;
 using sevencat.ruoyi.common.excel;
+using sevencat.ruoyi.common.log.attr;
 using sevencat.ruoyi.common.security.attr;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.service;
@@ -47,7 +49,7 @@ public class SysDictDataController(
 	/// 导出字典数据列表。
 	/// </summary>
 	/// <param name="dictData">查询条件</param>
-	// Java 原注解 @Log(title = "字典数据", businessType = BusinessType.EXPORT)：C# 端无操作日志切面，未实现
+	[Log("字典数据", BusinessTypeEnum.Export)]
 	[SaCheckPermission("system:dict:export")]
 	[HttpPost("export")]
 	public async Task Export([FromQuery] SysDictDataBo dictData)
@@ -88,6 +90,7 @@ public class SysDictDataController(
 	/// </summary>
 	/// <param name="dict">字典数据参数</param>
 	/// <returns>操作结果</returns>
+	[Log("字典数据", BusinessTypeEnum.Insert)]
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:dict:add")]
 	[HttpPost]
@@ -107,6 +110,7 @@ public class SysDictDataController(
 	/// </summary>
 	/// <param name="dict">字典数据参数</param>
 	/// <returns>操作结果</returns>
+	[Log("字典数据", BusinessTypeEnum.Update)]
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:dict:edit")]
 	[HttpPut]
@@ -126,6 +130,7 @@ public class SysDictDataController(
 	/// </summary>
 	/// <param name="dictCodes">字典code串，形如 1,2,3</param>
 	/// <returns>操作结果</returns>
+	[Log("字典数据", BusinessTypeEnum.Delete)]
 	// Java 原注解 @PathVariable Long[] dictCodes：Spring 支持 1,2,3 形式，
 	// ASP.NET 的 long[] 只认可重复键，这里按字符串接收后自行切分
 	[SaCheckPermission("system:dict:remove")]

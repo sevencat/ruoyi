@@ -5,8 +5,10 @@ using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.constant;
 using sevencat.ruoyi.common.entity;
+using sevencat.ruoyi.common.enums;
 using sevencat.ruoyi.common.excel;
 using sevencat.ruoyi.common.lang;
+using sevencat.ruoyi.common.log.attr;
 using sevencat.ruoyi.common.security.attr;
 using sevencat.ruoyi.common.util;
 using sevencat.ruoyi.sys.bo;
@@ -24,7 +26,7 @@ namespace sevencat.ruoyi.sys.controller;
 // Java 原注解 @Validated：C# 端无等价校验管线，需自行校验
 [ApiController]
 [Route("/api/system/user")]
-public class UserController(
+public class SysUserController(
 	LoginService loginService,
 	SysDeptService deptService,
 	SysUserService userService,
@@ -152,6 +154,7 @@ public class UserController(
 	/// </summary>
 	/// <param name="user">用户新增参数</param>
 	/// <returns>操作结果</returns>
+	[Log("用户管理", BusinessTypeEnum.Insert)]
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:user:add")]
 	[HttpPost]
@@ -182,6 +185,7 @@ public class UserController(
 	/// </summary>
 	/// <param name="user">用户编辑参数</param>
 	/// <returns>操作结果</returns>
+	[Log("用户管理", BusinessTypeEnum.Update)]
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:user:edit")]
 	[HttpPut]
@@ -213,6 +217,7 @@ public class UserController(
 	/// </summary>
 	/// <param name="userIds">用户ID串，形如 1,2,3</param>
 	/// <returns>操作结果</returns>
+	[Log("用户管理", BusinessTypeEnum.Delete)]
 	// Java 原注解 @DeleteMapping("/{userIds}") Long[] userIds：Spring 支持 1,2,3 形式，
 	// ASP.NET 的 long[] 只认可重复键，这里按字符串接收后自行切分
 	[SaCheckPermission("system:user:remove")]
@@ -234,6 +239,7 @@ public class UserController(
 	/// </summary>
 	/// <param name="user">用户参数</param>
 	/// <returns>操作结果</returns>
+	[Log("用户管理", BusinessTypeEnum.Update)]
 	// Java 原注解 @ApiEncrypt：C# 端无接口加密实现
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:user:resetPwd")]
@@ -251,6 +257,7 @@ public class UserController(
 	/// </summary>
 	/// <param name="user">用户参数</param>
 	/// <returns>操作结果</returns>
+	[Log("用户管理", BusinessTypeEnum.Update)]
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:user:edit")]
 	[HttpPut("changeStatus")]
@@ -266,6 +273,7 @@ public class UserController(
 	/// </summary>
 	/// <param name="userId">用户ID</param>
 	/// <returns>操作结果</returns>
+	[Log("用户管理", BusinessTypeEnum.Update)]
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:user:edit")]
 	[HttpGet("unlock/{userId:long}")]
@@ -309,6 +317,7 @@ public class UserController(
 	/// <param name="userId">用户Id</param>
 	/// <param name="roleIds">角色ID串，形如 1,2,3</param>
 	/// <returns>操作结果</returns>
+	[Log("用户管理", BusinessTypeEnum.Grant)]
 	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:user:edit")]
 	[HttpPut("authRole")]
@@ -323,6 +332,7 @@ public class UserController(
 	/// 导出符合条件的用户列表。
 	/// </summary>
 	/// <param name="user">用户查询条件</param>
+	[Log("用户管理", BusinessTypeEnum.Export)]
 	// Java 原注解 @PostMapping("/export") + ExcelBuilder.toResponse：C# 端改用 MiniExcel 写响应流
 	[SaCheckPermission("system:user:export")]
 	[HttpPost("export")]
@@ -348,6 +358,7 @@ public class UserController(
 	/// <param name="file">导入文件</param>
 	/// <param name="updateSupport">是否更新已存在数据</param>
 	/// <returns>导入结果说明</returns>
+	[Log("用户管理", BusinessTypeEnum.Import)]
 	// Java 原注解 @PostMapping(value = "/importData", consumes = MULTIPART_FORM_DATA_VALUE)
 	// Java 通过 ExcelBuilder.read(...).listener(new SysUserImportListener(updateSupport)).doRead() 读取，
 	// C# 端先用 MiniExcel 解析出列表，再把监听器逻辑交给 SysUserService.ImportUser

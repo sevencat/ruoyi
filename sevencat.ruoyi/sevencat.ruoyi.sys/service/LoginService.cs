@@ -11,6 +11,7 @@ using sevencat.ruoyi.common.util;
 using sevencat.ruoyi.sys.dto;
 using sevencat.ruoyi.sys.entity;
 using sevencat.ruoyi.sys.entity.db;
+using sevencat.ruoyi.sys.util;
 using sevencat.ruoyi.sys.vo;
 using ZiggyCreatures.Caching.Fusion;
 using BC = BCrypt.Net.BCrypt;
@@ -24,51 +25,127 @@ public class LoginService(
 	IHttpContextAccessor httpCtxAccessor,
 	CaptchaProperties captchaProperties,
 	IFusionCache cache,
-	SysPermissionService sysPermissionService) : ILoginService
+	SysPermissionService sysPermissionService,
+	SysLoginInfoService loginInfoService) : ILoginService
 {
 	private static readonly NLog.Logger Log = NLog.LogManager.GetCurrentClassLogger();
+
+	/// <summary>
+	/// 令牌有效期
+	/// </summary>
+	private static readonly TimeSpan TokenExpire = TimeSpan.FromDays(1);
+
+	/// <summary>
+	/// 登录成功提示消息（对应 Java 的 <c>MessageUtils.message("user.login.success")</c>）
+	/// </summary>
+	private const string LOGIN_SUCCESS_MESSAGE = "登录成功";
 
 	public async Task<LoginVo> login(LoginBody loginBody)
 	{
 		var username = loginBody.username;
 		var pwd = loginBody.password;
-		if (captchaProperties.Enabled)
+		try
 		{
-			await ValidateCaptcha(username, loginBody.code, loginBody.uuid);
+			// 校验码校验：对应 Java 的 validateCaptcha
+			if (captchaProperties.Enabled)
+			{
+				await ValidateCaptcha(username, loginBody.code, loginBody.uuid);
+			}
+
+			var dbuser = await fsql.Select<TSysUser>()
+				.Where(x => x.UserName == username)
+				.FirstAsync();
+			if (dbuser == null)
+			{
+				Log.Info("登录用户{0}不存在", username);
+				throw new UserException("user.not.exists", username);
+			}
+
+			if (dbuser.Status == SystemConstants.DISABLE)
+			{
+				Log.Info("登录用户：{0} 已被停用.", username);
+				throw new UserException("user.blocked", username);
+			}
+
+			if (!BC.Verify(pwd, dbuser.Password))
+			{
+				Log.Info("登录用户：{0} 密码错误.", username);
+				throw new UserException("user.password.retry.limit.exceed", username);
+			}
+
+			var loginUser = await BuildLoginUser(dbuser);
+			var token = Guid.NewGuid().ToString("N");
+			loginUser.Token = token;
+			FillLoginInfo(loginUser, loginBody.clientId);
+			var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
+			await cache.SetAsync(cachekey, loginUser, x => x.SetDuration(TokenExpire));
+
+			// 对应 Java 的 AsyncFactory.recordLogininfor(LOGIN_SUCCESS) 与 UserLoginSuccessListener 写回最近登录信息
+			await loginInfoService.RecordLoginInfo(username, loginBody.clientId, SystemConstants.NORMAL,
+				LOGIN_SUCCESS_MESSAGE, loginUser);
+			await UpdateLastLoginInfo(dbuser.UserId, loginUser);
+
+			var loginVo = new LoginVo();
+			loginVo.AccessToken = token;
+			loginVo.expireqIn = (long)TokenExpire.TotalSeconds;
+			loginVo.ClientId = loginBody.clientId;
+			return loginVo;
+		}
+		catch (UserException ex)
+		{
+			// 对应 Java 的 AsyncFactory.recordLogininfor(LOGIN_FAIL)：
+			// 失败时尚未构建登录用户，终端信息由服务内部直接从请求上下文取
+			await loginInfoService.RecordLoginInfo(username, loginBody.clientId, SystemConstants.DISABLE,
+				ex.BuildMessage());
+			throw;
+		}
+	}
+
+	/// <summary>
+	/// 更新用户最近登录信息（对应 Java 的 <c>UserLoginSuccessListener</c> 中写回 sys_user 的部分）
+	/// </summary>
+	/// <param name="userId">用户ID</param>
+	/// <param name="loginUser">登录用户</param>
+	private async Task UpdateLastLoginInfo(long userId, LoginUser loginUser)
+	{
+		await fsql.Update<TSysUser>()
+			.Set(x => x.LoginIp, loginUser.Ipaddr)
+			.Set(x => x.LoginDate, DateTime.Now)
+			.Where(x => x.UserId == userId)
+			.ExecuteAffrowsAsync();
+	}
+
+	/// <summary>
+	/// 补充登录终端信息（对应 Java 的 <c>LoginHelper.fillRequestContext</c> 与 <c>UserLoginSuccessListener.handleLoginSuccess</c>）。
+	/// </summary>
+	/// <param name="loginUser">登录用户</param>
+	/// <param name="clientId">客户端id</param>
+	private void FillLoginInfo(LoginUser loginUser, string clientId)
+	{
+		var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+		loginUser.LoginTime = now;
+		loginUser.ExpireTime = now + (long)TokenExpire.TotalMilliseconds;
+		// Java 端在线会话的 clientKey 取自登录参数中的客户端id
+		loginUser.ClientKey = clientId;
+		// TODO Java 端 deviceType 取自 sys_client.device_type，C# 端 SysClient 尚未实现，暂固定为 pc
+		loginUser.DeviceType = DeviceType.PC;
+
+		var httpctx = httpCtxAccessor.HttpContext;
+		if (httpctx == null)
+		{
+			return;
 		}
 
-		var dbuser = await fsql.Select<TSysUser>()
-			.Where(x => x.UserName == username)
-			.FirstAsync();
-		if (dbuser == null)
+		var ip = ServletUtils.GetClientIp(httpctx);
+		loginUser.Ipaddr = ip;
+		if (ip.IsNotNullOrWhiteSpace())
 		{
-			Log.Info("登录用户{0}不存在", username);
-			throw new UserException("user.not.exists", username);
+			loginUser.LoginLocation = AddressUtils.GetRealAddressByIP(ip);
 		}
 
-		if (dbuser.Status == SystemConstants.DISABLE)
-		{
-			Log.Info("登录用户：{0} 已被停用.", username);
-			throw new UserException("user.blocked", username);
-		}
-
-		if (!BC.Verify(pwd, dbuser.Password))
-		{
-			Log.Info("登录用户：{0} 密码错误.", username);
-			throw new UserException("user.password.retry.limit.exceed", username);
-		}
-
-		var loginUser = await BuildLoginUser(dbuser);
-		var token = Guid.NewGuid().ToString("N");
-		loginUser.Token = token;
-		var cachekey = GlobalConstants.USER_TOKEN_KEY + token;
-		await cache.SetAsync(cachekey, loginUser, x => x.SetDuration(TimeSpan.FromDays(1)));
-
-		var loginVo = new LoginVo();
-		loginVo.AccessToken = token;
-		loginVo.expireqIn = 3600 * 24;
-		loginVo.ClientId = loginBody.clientId;
-		return loginVo;
+		var (browser, os) = UserAgentUtils.Parse(ServletUtils.GetUserAgent(httpctx));
+		loginUser.Browser = browser;
+		loginUser.Os = os;
 	}
 
 
@@ -207,6 +284,20 @@ public class LoginService(
 			.ToList();
 
 		return loginUser;
+	}
+
+	public LoginUser FastgetLoginUser()
+	{
+		var httpctx = httpCtxAccessor.HttpContext;
+		if (httpctx == null)
+			return null;
+		if (!httpctx.Items.TryGetValue(TokenHttpKey, out var loginmodel))
+		{
+			return null;
+		}
+
+		var lu = (LoginUser)loginmodel;
+		return lu;
 	}
 
 	public async Task<long?> GetLoginuid()

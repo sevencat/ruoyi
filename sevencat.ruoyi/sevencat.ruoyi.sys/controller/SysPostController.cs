@@ -4,8 +4,10 @@ using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.constant;
 using sevencat.ruoyi.common.entity;
+using sevencat.ruoyi.common.enums;
 using sevencat.ruoyi.common.excel;
 using sevencat.ruoyi.common.lang;
+using sevencat.ruoyi.common.log.attr;
 using sevencat.ruoyi.common.security.attr;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.entity.db;
@@ -49,7 +51,7 @@ public class SysPostController(
 	/// 导出岗位列表。
 	/// </summary>
 	/// <param name="post">查询条件</param>
-	// Java 原注解 @Log(title = "岗位管理", businessType = BusinessType.EXPORT)：C# 端无操作日志切面，未实现
+	[Log("岗位管理", BusinessTypeEnum.Export)]
 	[SaCheckPermission("system:post:export")]
 	[HttpPost("export")]
 	public async Task Export([FromQuery] SysPostBo post)
@@ -77,7 +79,8 @@ public class SysPostController(
 	/// </summary>
 	/// <param name="post">岗位参数</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "岗位管理", businessType = BusinessType.INSERT) @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	[Log("岗位管理", BusinessTypeEnum.Insert)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:post:add")]
 	[HttpPost]
 	public async Task<CommonResult> Add([FromBody] SysPostBo post)
@@ -100,7 +103,8 @@ public class SysPostController(
 	/// </summary>
 	/// <param name="post">岗位参数</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "岗位管理", businessType = BusinessType.UPDATE) @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	[Log("岗位管理", BusinessTypeEnum.Update)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:post:edit")]
 	[HttpPut]
 	public async Task<CommonResult> Edit([FromBody] SysPostBo post)
@@ -129,7 +133,7 @@ public class SysPostController(
 	/// </summary>
 	/// <param name="postIds">岗位ID串，形如 1,2,3</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "岗位管理", businessType = BusinessType.DELETE)：C# 端无操作日志切面，未实现
+	[Log("岗位管理", BusinessTypeEnum.Delete)]
 	// Java 原注解 @PathVariable Long[] postIds：Spring 支持 1,2,3 形式，
 	// ASP.NET 的 long[] 只认可重复键，这里按字符串接收后自行切分
 	[SaCheckPermission("system:post:remove")]

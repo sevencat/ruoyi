@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.constant;
+using sevencat.ruoyi.common.enums;
+using sevencat.ruoyi.common.log.attr;
 using sevencat.ruoyi.common.security.attr;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.service;
@@ -63,7 +65,8 @@ public class SysDeptController(SysDeptService deptService, SysPostService postSe
 	/// </summary>
 	/// <param name="dept">部门参数</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "部门管理", businessType = BusinessType.INSERT) @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	[Log("部门管理", BusinessTypeEnum.Insert)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:dept:add")]
 	[HttpPost]
 	public async Task<CommonResult> Add([FromBody] SysDeptBo dept)
@@ -81,7 +84,8 @@ public class SysDeptController(SysDeptService deptService, SysPostService postSe
 	/// </summary>
 	/// <param name="dept">部门参数</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "部门管理", businessType = BusinessType.UPDATE) @RepeatSubmit：C# 端无操作日志切面与重复提交拦截，未实现
+	[Log("部门管理", BusinessTypeEnum.Update)]
+	// Java 原注解 @RepeatSubmit：C# 端无重复提交拦截，未实现
 	[SaCheckPermission("system:dept:edit")]
 	[HttpPut]
 	public async Task<CommonResult> Edit([FromBody] SysDeptBo dept)
@@ -119,7 +123,7 @@ public class SysDeptController(SysDeptService deptService, SysPostService postSe
 	/// </summary>
 	/// <param name="deptId">部门ID</param>
 	/// <returns>操作结果</returns>
-	// Java 原注解 @Log(title = "部门管理", businessType = BusinessType.DELETE)：C# 端无操作日志切面，未实现
+	[Log("部门管理", BusinessTypeEnum.Delete)]
 	// Java 此处用 R.warn(...)（告警码 601）返回，C# 端 CommonResult 无 warn 语义，统一用 Fail 返回提示
 	[SaCheckPermission("system:dept:remove")]
 	[HttpDelete("{deptId:long}")]
