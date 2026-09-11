@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using sevencat.ruoyi.common.db.attr;
+using sevencat.ruoyi.common.db.datapermission;
 using sevencat.ruoyi.common.entity.db;
 using sevencat.ruoyi.common.security;
 
@@ -12,6 +13,9 @@ public class FSqlAop
 	public static void SetupFreesql(IFreeSql fsql)
 	{
 		fsql.Aop.AuditValue += (s, e) => { Handle(e); };
+
+		// 装配数据权限 AOP（对应 Java 的 PlusDataPermissionInterceptor）
+		DataPermissionFilter.Setup(fsql);
 	}
 
 	const long DEFAULT_USER_ID = -1L;

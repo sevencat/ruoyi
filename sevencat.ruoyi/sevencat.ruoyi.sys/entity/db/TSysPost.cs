@@ -9,6 +9,7 @@ namespace sevencat.ruoyi.sys.entity.db;
 /// </summary>
 [Table(Name = "sys_post")]
 [Index("idx_sys_post_dept_id", "DeptId")]
+[DataScope]
 public class TSysPost : TBaseEntity
 {
 	/// <summary>

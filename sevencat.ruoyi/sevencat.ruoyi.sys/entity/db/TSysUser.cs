@@ -12,6 +12,7 @@ namespace sevencat.ruoyi.sys.entity.db;
 [Index("idx_sys_user_create_by", "CreateBy")]
 [Index("idx_sys_user_user_name", "UserName")]
 [Index("idx_sys_user_phone", "PhoneNumber")]
+[DataScope]
 public class TSysUser : TBaseEntity
 {
 	/// <summary>

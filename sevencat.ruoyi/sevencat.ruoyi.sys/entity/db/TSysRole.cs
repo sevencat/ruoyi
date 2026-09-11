@@ -10,6 +10,7 @@ namespace sevencat.ruoyi.sys.entity.db;
 [Table(Name = "sys_role")]
 [Index("idx_sys_role_create_dept", "CreateDept")]
 [Index("idx_sys_role_create_by", "CreateBy")]
+[DataScope(DeptColumn = nameof(TBaseEntity.CreateDept))]
 public class TSysRole : TBaseEntity
 {
 	/// <summary>

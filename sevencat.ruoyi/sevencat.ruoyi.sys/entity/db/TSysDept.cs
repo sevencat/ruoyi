@@ -9,6 +9,8 @@ namespace sevencat.ruoyi.sys.entity.db;
 /// </summary>
 [Table(Name = "sys_dept")]
 [Index("idx_sys_dept_parent_id", "ParentId")]
+// 对应 Java SysDeptMapper：仅声明 deptName(dept_id)，无 userName，故本人条件不参与
+[DataScope(UserColumn = null)]
 public class TSysDept : TBaseEntity
 {
 	/// <summary>
