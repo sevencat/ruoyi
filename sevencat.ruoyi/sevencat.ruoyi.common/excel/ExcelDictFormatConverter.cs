@@ -2,17 +2,16 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using Autofac.Annotation;
 using sevencat.common;
-using sevencat.ruoyi.common.excel;
 using sevencat.ruoyi.common.excel.attr;
-using sevencat.ruoyi.sys.service;
+using sevencat.ruoyi.common.service;
 
-namespace sevencat.ruoyi.sys.excel;
+namespace sevencat.ruoyi.common.excel;
 
 /// <summary>
 /// 按 <see cref="ExcelDictFormatAttribute"/> 批量做字典转换（对应 Java 的 <c>ExcelDictConvert</c> 转换器管线）
 /// </summary>
 [Component]
-public class ExcelDictFormatConverter(SysDictDataService dictDataService)
+public class ExcelDictFormatConverter(ISysDictDataService dictDataService)
 {
 	/// <summary>
 	/// 类型到「带字典格式化特性的属性」的缓存

@@ -1,7 +1,7 @@
-using Microsoft.AspNetCore.Http;
 using MiniExcelLibs;
+using Microsoft.AspNetCore.Http;
 
-namespace sevencat.ruoyi.sys.excel;
+namespace sevencat.ruoyi.common.excel;
 
 /// <summary>
 /// 把数据以 Excel 形式写进当前 HTTP 响应流（对应 Java 的 <c>ExcelBuilder.toResponse</c>）
@@ -25,7 +25,7 @@ public static class ExcelResponseWriter
 	{
 		// 先写入内存流再拷贝到响应体，避免 MiniExcel 直接写不可随机访问的响应流
 		using var stream = new MemoryStream();
-		await MiniExcel.SaveAsAsync(stream, rows, printHeader: true, sheetName: sheetName,
+		await stream.SaveAsAsync(rows, printHeader: true, sheetName: sheetName,
 			excelType: ExcelType.XLSX);
 		stream.Position = 0;
 

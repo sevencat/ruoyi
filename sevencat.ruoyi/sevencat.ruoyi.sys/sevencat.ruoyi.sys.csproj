@@ -25,4 +25,9 @@
         <ProjectReference Include="..\sevencat.ruoyi.common\sevencat.ruoyi.common.csproj"/>
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="constant\" />
+      <Folder Include="excel\" />
+    </ItemGroup>
+
 </Project>

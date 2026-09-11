@@ -6,6 +6,8 @@ using sevencat.ruoyi.common.db.util;
 using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.common.excel;
 using sevencat.ruoyi.common.exception;
+using sevencat.ruoyi.common.security;
+using sevencat.ruoyi.common.service;
 using sevencat.ruoyi.common.util;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.entity.db;
@@ -21,7 +23,8 @@ namespace sevencat.ruoyi.sys.service;
 /// C# 端暂无该缓存，改为按需查询数据库；相应地 <c>@CachePut</c> / <c>CacheUtils.evict</c> 均无需实现。
 /// </remarks>
 [Component]
-public class SysDictDataService(IFreeSql fsql, IMapper mapper, LoginService loginService)
+public class SysDictDataService(IFreeSql fsql, IMapper mapper)
+	: ISysDictDataService
 {
 	/// <summary>
 	/// 查询字典值到字典标签的映射（导出方向转换用）
@@ -80,7 +83,8 @@ public class SysDictDataService(IFreeSql fsql, IMapper mapper, LoginService logi
 	/// <param name="dictValue">字典值，可用 <paramref name="separator"/> 分隔多个值</param>
 	/// <param name="separator">多值分隔符</param>
 	/// <returns>字典标签；无匹配时返回空字符串</returns>
-	public async Task<string> SelectDictLabel(string dictType, string dictValue, string separator = ExcelDictConvert.SEPARATOR)
+	public async Task<string> SelectDictLabel(string dictType, string dictValue,
+		string separator = ExcelDictConvert.SEPARATOR)
 	{
 		if (dictValue.IsNullOrWhiteSpace())
 		{
@@ -97,7 +101,8 @@ public class SysDictDataService(IFreeSql fsql, IMapper mapper, LoginService logi
 	/// <param name="dictLabel">字典标签，可用 <paramref name="separator"/> 分隔多个值</param>
 	/// <param name="separator">多值分隔符</param>
 	/// <returns>字典值；无匹配时返回空字符串</returns>
-	public async Task<string> SelectDictValue(string dictType, string dictLabel, string separator = ExcelDictConvert.SEPARATOR)
+	public async Task<string> SelectDictValue(string dictType, string dictLabel,
+		string separator = ExcelDictConvert.SEPARATOR)
 	{
 		if (dictLabel.IsNullOrWhiteSpace())
 		{
@@ -186,7 +191,7 @@ public class SysDictDataService(IFreeSql fsql, IMapper mapper, LoginService logi
 	{
 		var data = bo.MapTo<TSysDictData>(mapper);
 		// 对应 Java 的 InjectionMetaObjectHandler 自动填充创建人
-		data.CreateBy ??= await loginService.GetLoginuid();
+		data.CreateBy ??= await LoginHelper.GetLoginUid();
 
 		var row = await fsql.Insert(data).ExecuteAffrowsAsync();
 		if (row > 0)
@@ -206,7 +211,7 @@ public class SysDictDataService(IFreeSql fsql, IMapper mapper, LoginService logi
 	public async Task<List<SysDictDataVo>> UpdateDictData(SysDictDataBo bo)
 	{
 		var data = bo.MapTo<TSysDictData>(mapper);
-		data.UpdateBy ??= await loginService.GetLoginuid();
+		data.UpdateBy ??= await LoginHelper.GetLoginUid();
 
 		// SetSourceIgnore 对应 MyBatis-Plus updateById 的「null 不更新」语义
 		var row = await fsql.Update<TSysDictData>()

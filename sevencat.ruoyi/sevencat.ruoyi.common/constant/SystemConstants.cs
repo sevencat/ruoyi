@@ -1,4 +1,4 @@
-﻿namespace sevencat.ruoyi.sys.constant;
+﻿namespace sevencat.ruoyi.common.constant;
 
 /// <summary>
 /// 系统通用常量

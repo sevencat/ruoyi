@@ -3,7 +3,6 @@ using sevencat.ruoyi.common.constant;
 using sevencat.ruoyi.common.db.attr;
 using sevencat.ruoyi.common.entity.db;
 using sevencat.ruoyi.common.util;
-using sevencat.ruoyi.sys.constant;
 
 namespace sevencat.ruoyi.sys.entity.db;
 

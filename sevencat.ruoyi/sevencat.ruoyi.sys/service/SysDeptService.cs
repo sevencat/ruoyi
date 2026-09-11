@@ -1,10 +1,10 @@
 ﻿using Autofac.Annotation;
 using FreeSql;
 using sevencat.common;
+using sevencat.ruoyi.common.constant;
 using sevencat.ruoyi.common.exception;
 using sevencat.ruoyi.common.lang;
 using sevencat.ruoyi.sys.bo;
-using sevencat.ruoyi.sys.constant;
 using sevencat.ruoyi.sys.entity.db;
 
 namespace sevencat.ruoyi.sys.service;

@@ -1,4 +1,4 @@
-using sevencat.ruoyi.sys.constant;
+using sevencat.ruoyi.common.constant;
 
 namespace sevencat.ruoyi.sys.bo;
 

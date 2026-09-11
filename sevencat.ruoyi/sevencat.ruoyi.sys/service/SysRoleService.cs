@@ -1,10 +1,10 @@
 using Autofac.Annotation;
 using FreeSql;
 using MapsterMapper;
+using sevencat.ruoyi.common.constant;
 using sevencat.ruoyi.common.db.util;
 using sevencat.ruoyi.common.util;
 using sevencat.ruoyi.sys.bo;
-using sevencat.ruoyi.sys.constant;
 using sevencat.ruoyi.sys.entity.db;
 using sevencat.ruoyi.sys.vo;
 

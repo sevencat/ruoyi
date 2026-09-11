@@ -1,7 +1,6 @@
-﻿using sevencat.ruoyi.sys.constant;
-using sevencat.ruoyi.sys.dto;
+﻿using sevencat.ruoyi.common.constant;
 
-namespace sevencat.ruoyi.sys.entity;
+namespace sevencat.ruoyi.common.entity;
 
 /// <summary>
 /// 登录用户身份信息（缓存于登录态中）

@@ -1,5 +1,6 @@
 ﻿using Autofac.Annotation;
-using sevencat.ruoyi.sys.constant;
+using sevencat.ruoyi.common.constant;
+using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.sys.entity;
 using sevencat.ruoyi.sys.entity.db;
 
