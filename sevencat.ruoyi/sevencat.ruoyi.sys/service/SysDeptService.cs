@@ -1,6 +1,7 @@
 ﻿using Autofac.Annotation;
 using FreeSql;
 using sevencat.common;
+using sevencat.ruoyi.common.exception;
 using sevencat.ruoyi.common.lang;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.constant;
@@ -9,7 +10,7 @@ using sevencat.ruoyi.sys.entity.db;
 namespace sevencat.ruoyi.sys.service;
 
 [Component]
-public class SysDeptService(IFreeSql fsql)
+public class SysDeptService(IFreeSql fsql, LoginService loginService)
 {
 	/// <summary>
 	/// 查询部门树结构信息
@@ -31,6 +32,88 @@ public class SysDeptService(IFreeSql fsql)
 		}
 
 		return BuildDeptTreeSelect(depts);
+	}
+
+	/// <summary>
+	/// 查询指定部门及其所有子部门ID（对应 Java 的 <c>selectDeptAndChildById</c>）
+	/// </summary>
+	/// <param name="deptId">部门ID</param>
+	/// <returns>部门ID列表</returns>
+	public async Task<List<long>> SelectDeptAndChildById(long deptId)
+	{
+		var depts = await fsql.Select<TSysDept>()
+			.Where(x => x.DelFlag == SystemConstants.NORMAL)
+			.ToListAsync();
+
+		// Java 用 find_in_set(deptId, ancestors) 匹配子孙部门；这里按「祖先串以 deptId, 结尾」判断，
+		// 与 SelectDeptTreeList 的 BelongDeptId 处理保持一致
+		var suffix = $"{deptId},";
+		return depts
+			.Where(dept => dept.DeptId == deptId || $"{dept.Ancestors},".Contains(suffix))
+			.Select(dept => dept.DeptId)
+			.ToList();
+	}
+
+	/// <summary>
+	/// 校验部门数据权限（对应 Java 的 <c>checkDeptDataScope</c>）
+	/// </summary>
+	/// <param name="deptId">部门ID</param>
+	public async Task CheckDeptDataScope(long? deptId)
+	{
+		if (!deptId.HasValue)
+		{
+			return;
+		}
+
+		var loginUser = await loginService.GetLoginUser();
+		if (loginUser != null && loginUser.IsSuperAdmin())
+		{
+			return;
+		}
+
+		// Java 通过 DataPermissionHelper 在 countDeptById 上套部门数据权限；C# 端暂无该设施，
+		// 退化为判断部门是否存在（无数据权限约束时等价于可见全部部门）
+		if (!await fsql.Select<TSysDept>().Where(x => x.DeptId == deptId.Value).AnyAsync())
+		{
+			throw new ServiceException("没有权限访问部门数据！");
+		}
+	}
+
+	/// <summary>
+	/// 查询部门「全路径名称」映射（对应 Java 的 <c>DeptExcelConverter</c> 构建的部门名称缓存）
+	/// </summary>
+	/// <returns>部门ID到「父级/子级」全路径名称的映射</returns>
+	public async Task<Dictionary<long, string>> SelectDeptPathNames()
+	{
+		var depts = await fsql.Select<TSysDept>()
+			.Where(x => x.DelFlag == SystemConstants.NORMAL)
+			.ToListAsync();
+
+		var byId = depts.ToDictionary(x => x.DeptId);
+		var idToName = new Dictionary<long, string>(depts.Count);
+		foreach (var dept in depts)
+		{
+			var names = new List<string>();
+
+			// ancestors 形如 0,100,101，跳过根节点 0 后依次拼接各级父部门名称
+			foreach (var ancestor in (dept.Ancestors ?? string.Empty).Split(','))
+			{
+				if (ancestor.IsNullOrWhiteSpace() || ancestor == "0")
+				{
+					continue;
+				}
+
+				if (long.TryParse(ancestor, out var ancestorId) && byId.TryGetValue(ancestorId, out var parent))
+				{
+					names.Add(parent.DeptName);
+				}
+			}
+
+			names.Add(dept.DeptName);
+			idToName[dept.DeptId] = string.Join("/", names);
+		}
+
+		return idToName;
 	}
 
 	/// <summary>

@@ -17,13 +17,19 @@ public class SysUserImportVo
 	public long? UserId { get; set; }
 
 	/// <summary>
-	/// 部门ID
+	/// 部门ID（导入时由 DeptName 按部门全路径名称匹配得到，Excel 中不直接出现）
 	/// </summary>
 	// Java 原注解 @ExcelProperty(value = "部门名称", converter = DeptExcelConverter.class)：MiniExcel 无转换器管线，
-	// 部门名称需在导入后按名称自行匹配回 DeptId
+	// 部门名称由 DeptName 读入后再按名称匹配回本属性
+	[ExcelIgnore]
+	public long? DeptId { get; set; }
+
+	/// <summary>
+	/// 部门名称（Excel 列「部门名称」，形如「父级/子级」的全路径名称）
+	/// </summary>
 	// Java 原注解 @ExcelDynamicOptions(providerClass = DeptExcelOptions.class)：C# 端无动态下拉选项实现
 	[ExcelColumn(Name = "部门名称")]
-	public long? DeptId { get; set; }
+	public string DeptName { get; set; }
 
 	/// <summary>
 	/// 用户账号

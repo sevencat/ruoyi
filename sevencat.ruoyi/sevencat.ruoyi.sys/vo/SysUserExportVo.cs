@@ -25,9 +25,15 @@ public class SysUserExportVo
 	/// 部门ID
 	/// </summary>
 	// Java 原注解 @ExcelProperty(value = "部门名称", converter = DeptExcelConverter.class)：MiniExcel 无转换器管线，
-	// 部门名称需在导出前按 DeptId 自行回填
-	[ExcelColumn(Name = "部门名称")]
+	// 部门名称由 DeptId 转换后写入 DeptName 列，本属性只用于承载原始部门ID、不参与导出
+	[ExcelIgnore]
 	public long? DeptId { get; set; }
+
+	/// <summary>
+	/// 部门名称（Excel 列「部门名称」，导出前按 DeptId 转换为「父级/子级」全路径名称）
+	/// </summary>
+	[ExcelColumn(Name = "部门名称")]
+	public string DeptName { get; set; }
 
 	/// <summary>
 	/// 用户昵称

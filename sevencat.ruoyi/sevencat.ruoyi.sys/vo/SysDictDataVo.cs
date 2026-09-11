@@ -44,11 +44,15 @@ public class SysDictDataVo
 	/// <summary>
 	/// 样式属性（其他样式扩展）
 	/// </summary>
+	// Java 端无 @ExcelProperty，被类级 @ExcelIgnoreUnannotated 排除，这里用 [ExcelIgnore] 等价表达
+	[ExcelIgnore]
 	public string CssClass { get; set; }
 
 	/// <summary>
 	/// 表格回显样式
 	/// </summary>
+	// Java 端无 @ExcelProperty，被类级 @ExcelIgnoreUnannotated 排除，这里用 [ExcelIgnore] 等价表达
+	[ExcelIgnore]
 	public string ListClass { get; set; }
 
 	/// <summary>
