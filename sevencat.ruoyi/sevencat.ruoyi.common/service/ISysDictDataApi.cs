@@ -1,6 +1,6 @@
 ﻿namespace sevencat.ruoyi.common.service;
 
-public interface ISysDictDataService
+public interface ISysDictDataApi
 {
 	Task<Dictionary<string, string>> SelectDictLabelMap(string dictType);
 }

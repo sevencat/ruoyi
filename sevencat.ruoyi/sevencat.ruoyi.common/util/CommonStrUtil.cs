@@ -163,4 +163,33 @@ public static class CommonStrUtil
 
 		return buf.ToString();
 	}
+
+	/// <summary>
+	/// 把 <paramref name="text"/> 中第一处出现的 <paramref name="search"/> 替换为
+	/// <paramref name="replacement"/>（只替换一次，不递归）。
+	/// 对应 Java commons-lang3 的 <c>StringUtils.replaceOnce(String, String, String)</c>。
+	/// </summary>
+	/// <param name="text">待替换的源字符串。</param>
+	/// <param name="search">待查找的子串；为 null 或空串时不替换。</param>
+	/// <param name="replacement">替换子串。</param>
+	/// <returns>替换后的字符串；无匹配或 <paramref name="text"/> 为 null/空串时返回原值。</returns>
+	public static string ReplaceOnce(string text, string search, string replacement)
+	{
+		if (string.IsNullOrEmpty(text) || string.IsNullOrEmpty(search))
+		{
+			return text;
+		}
+
+		var index = text.IndexOf(search!, StringComparison.Ordinal);
+		if (index < 0)
+		{
+			return text;
+		}
+
+		var buf = new StringBuilder(text.Length - search!.Length + (replacement?.Length ?? 0));
+		buf.Append(text, 0, index);
+		buf.Append(replacement);
+		buf.Append(text, index + search.Length, text.Length - index - search.Length);
+		return buf.ToString();
+	}
 }

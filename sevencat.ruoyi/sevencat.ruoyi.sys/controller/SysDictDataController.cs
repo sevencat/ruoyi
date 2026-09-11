@@ -18,7 +18,7 @@ namespace sevencat.ruoyi.sys.controller;
 [ApiController]
 [Route("/api/system/dict/data")]
 public class SysDictDataController(
-	SysDictDataService dictDataService,
+	SysDictDataApi dictDataService,
 	SysDictTypeService dictTypeService,
 	ExcelDictFormatConverter dictFormatConverter,
 	IHttpContextAccessor httpCtxAccessor)

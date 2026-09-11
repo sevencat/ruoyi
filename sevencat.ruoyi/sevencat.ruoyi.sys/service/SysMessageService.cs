@@ -1,6 +1,9 @@
 ﻿using System.Text.Json;
 using Autofac.Annotation;
 using MapsterMapper;
+using sevencat.ruoyi.common.enums;
+using sevencat.ruoyi.common.security;
+using sevencat.ruoyi.sys.dto;
 using sevencat.ruoyi.sys.entity.db;
 using sevencat.ruoyi.sys.vo;
 
@@ -64,6 +67,33 @@ public class SysMessageService(IFreeSql fsql, IMapper mapper)
 	}
 
 	/// <summary>
+	/// 存储全局广播消息到数据库（对应 Java 的 <c>storeAll</c>）
+	/// </summary>
+	/// <param name="payload">消息推送体</param>
+	/// <returns>回填消息ID后的消息推送体</returns>
+	/// <remarks>
+	/// Java 的 <c>publishAll</c> 为「<c>PushHelper.publishAll(storeAll(payload))</c>」，即先落库再推送在线用户；
+	/// C# 端暂无 SSE / WebSocket 推送设施（PushHelper），故只保留落库部分，前端经消息盒子接口读取。
+	/// </remarks>
+	public async Task<PushPayloadDTO> StoreAll(PushPayloadDTO payload)
+	{
+		if (payload == null || !SupportsMessageBox(payload))
+		{
+			return payload;
+		}
+
+		var message = BuildMessage(payload);
+		// 对应 Java 的 InjectionMetaObjectHandler 自动填充创建人/创建时间
+		// 消息盒子按创建时间（近30天）过滤，创建时间必须写入
+		message.CreateBy ??= await LoginHelper.GetLoginUid();
+		message.CreateTime ??= DateTime.Now;
+
+		await fsql.Insert(message).ExecuteAffrowsAsync();
+		payload.MessageId = message.MessageId;
+		return payload;
+	}
+
+	/// <summary>
 	/// 消息实体转换为展示VO
 	/// </summary>
 	/// <param name="entity">消息实体</param>
@@ -88,5 +118,98 @@ public class SysMessageService(IFreeSql fsql, IMapper mapper)
 		}
 
 		return JsonSerializer.Deserialize<object>(dataJson);
+	}
+
+	/// <summary>
+	/// 判断消息是否需要存入消息盒子（对应 Java 的 <c>supportsMessageBox</c>）
+	/// 仅系统消息、通知消息需要存入
+	/// </summary>
+	/// <param name="payload">消息推送体</param>
+	/// <returns>true 需要存入 false 不需要</returns>
+	private static bool SupportsMessageBox(PushPayloadDTO payload)
+	{
+		// 仅消息/通知类型需要存入，排除LLM大模型消息
+		var type = payload.Type;
+		if (type != PushTypeEnum.Message.GetTypeValue() && type != PushTypeEnum.Notice.GetTypeValue())
+		{
+			return false;
+		}
+
+		return type != PushTypeEnum.Llm.GetTypeValue()
+		       && payload.Source != PushSourceEnum.Llm.GetSourceValue();
+	}
+
+	/// <summary>
+	/// 根据消息类型/来源自动解析消息分类（对应 Java 的 <c>resolveCategory</c>）
+	/// </summary>
+	/// <param name="payload">消息推送体</param>
+	/// <returns>消息分类（system/notice/workflow）</returns>
+	private static string ResolveCategory(PushPayloadDTO payload)
+	{
+		if (payload.Type == PushTypeEnum.Notice.GetTypeValue()
+		    || payload.Source == PushSourceEnum.Notice.GetSourceValue())
+		{
+			return CATEGORY_NOTICE;
+		}
+
+		if (payload.Source == PushSourceEnum.Workflow.GetSourceValue())
+		{
+			return CATEGORY_WORKFLOW;
+		}
+
+		return CATEGORY_SYSTEM;
+	}
+
+	/// <summary>
+	/// 根据消息分类自动生成消息标题（对应 Java 的 <c>resolveTitle</c>）
+	/// </summary>
+	/// <param name="payload">消息推送体</param>
+	/// <returns>消息标题</returns>
+	private static string ResolveTitle(PushPayloadDTO payload)
+	{
+		return ResolveCategory(payload) switch
+		{
+			CATEGORY_NOTICE => "通知公告消息",
+			CATEGORY_WORKFLOW => "工作流消息",
+			_ => "系统消息"
+		};
+	}
+
+	/// <summary>
+	/// 解析消息内容（对应 Java 的 <c>resolveContent</c>，从 data 中提取 noticeContent）
+	/// </summary>
+	/// <param name="payload">消息推送体</param>
+	/// <returns>消息内容</returns>
+	private static string ResolveContent(PushPayloadDTO payload)
+	{
+		if (payload.Data is IDictionary<string, object> map && map.TryGetValue("noticeContent", out var content))
+		{
+			return Convert.ToString(content);
+		}
+
+		return null;
+	}
+
+	/// <summary>
+	/// 构建消息实体（对应 Java 的 <c>buildMessage</c>，用于数据库存储）
+	/// </summary>
+	/// <param name="payload">消息推送体</param>
+	/// <returns>系统消息实体</returns>
+	private static TSysMessage BuildMessage(PushPayloadDTO payload)
+	{
+		return new TSysMessage
+		{
+			// messageId 由 [Snowflake] 在插入时自动填充（对应 Java 的 IdGeneratorUtil.nextLongId()）
+			Category = ResolveCategory(payload),
+			Type = payload.Type,
+			Source = payload.Source,
+			Title = ResolveTitle(payload),
+			Message = payload.Message,
+			Content = ResolveContent(payload),
+			DataJson = payload.Data == null ? null : JsonSerializer.Serialize(payload.Data),
+			Path = payload.Path,
+			// 全局广播（对应 Java 的 CollUtil.isEmpty(userIds) ? GLOBAL_USER_IDS : ...）
+			SendUserIds = GLOBAL_USER_IDS
+		};
 	}
 }

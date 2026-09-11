@@ -7,7 +7,7 @@ namespace sevencat.ruoyi.sys.controller;
 
 [ApiController]
 [Route("/api/system/menu")]
-public class MenuController(
+public class SysMenuController(
 	LoginService loginService,
 	MenuService menuService)
 {

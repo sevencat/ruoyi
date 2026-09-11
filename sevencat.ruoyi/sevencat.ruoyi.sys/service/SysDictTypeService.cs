@@ -19,7 +19,7 @@ namespace sevencat.ruoyi.sys.service;
 /// C# 端暂无该缓存，改为按需查询数据库，因此 <c>@Cacheable</c> / <c>@CachePut</c> 与 <c>resetDictCache</c> 均无需实现。
 /// </remarks>
 [Component]
-public class SysDictTypeService(IFreeSql fsql, IMapper mapper, SysDictDataService dictDataService,
+public class SysDictTypeService(IFreeSql fsql, IMapper mapper, SysDictDataApi dictDataService,
 	LoginService loginService)
 {
 	/// <summary>

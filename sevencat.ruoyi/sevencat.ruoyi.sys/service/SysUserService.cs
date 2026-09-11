@@ -378,7 +378,7 @@ public class SysUserService(
 	/// <returns>导入结果说明；存在失败数据时抛出 <see cref="ServiceException"/></returns>
 	public async Task<string> ImportUser(List<SysUserImportVo> userList, bool isUpdateSupport, long? operUserId)
 	{
-		var initPassword = await configService.SelectqConfigByKey("sys.user.initPassword");
+		var initPassword = await configService.SelectConfigByKey("sys.user.initPassword");
 		var password = BC.HashPassword(initPassword ?? string.Empty);
 		var successNum = 0;
 		var failureNum = 0;

@@ -23,8 +23,8 @@ namespace sevencat.ruoyi.sys.service;
 /// C# 端暂无该缓存，改为按需查询数据库；相应地 <c>@CachePut</c> / <c>CacheUtils.evict</c> 均无需实现。
 /// </remarks>
 [Component]
-public class SysDictDataService(IFreeSql fsql, IMapper mapper)
-	: ISysDictDataService
+public class SysDictDataApi(IFreeSql fsql, IMapper mapper)
+	: ISysDictDataApi
 {
 	/// <summary>
 	/// 查询字典值到字典标签的映射（导出方向转换用）

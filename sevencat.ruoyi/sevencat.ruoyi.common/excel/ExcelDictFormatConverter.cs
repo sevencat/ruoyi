@@ -11,7 +11,7 @@ namespace sevencat.ruoyi.common.excel;
 /// 按 <see cref="ExcelDictFormatAttribute"/> 批量做字典转换（对应 Java 的 <c>ExcelDictConvert</c> 转换器管线）
 /// </summary>
 [Component]
-public class ExcelDictFormatConverter(ISysDictDataService dictDataService)
+public class ExcelDictFormatConverter(ISysDictDataApi dictDataService)
 {
 	/// <summary>
 	/// 类型到「带字典格式化特性的属性」的缓存
