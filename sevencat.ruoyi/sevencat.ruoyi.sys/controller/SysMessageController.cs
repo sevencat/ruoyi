@@ -56,6 +56,6 @@ public class SysMessageController(
 
 		// 交给管理器接管，保持长连接
 		var userId = lu.UserId.Value;
-		await sseManager.RegisterClientAsync(userId, httpcontext, cancellationToken);
+		await sseManager.RegisterClientAsync(userId, Authorization, httpcontext, cancellationToken);
 	}
 }

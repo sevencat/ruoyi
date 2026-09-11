@@ -23,7 +23,8 @@ namespace sevencat.ruoyi.sys.service;
 public class SysUserOnlineService(
 	IFusionCache cache,
 	RedisClient redisClient,
-	LoginService loginService)
+	LoginService loginService,
+	SseManager sseManager)
 {
 	/// <summary>
 	/// 在线会话缓存 key 前缀
@@ -81,7 +82,14 @@ public class SysUserOnlineService(
 	/// <param name="tokenId">token值</param>
 	public async Task ForceLogout(string tokenId)
 	{
+		// 先取出会话，用于定位对应的 SSE 连接后再清除缓存
+		var target = await cache.GetOrDefaultAsync<LoginUser>(OnlineTokenKey + tokenId);
 		await cache.RemoveAsync(OnlineTokenKey + tokenId);
+		if (target?.UserId is long userId)
+		{
+			// 通知并关闭被强退用户的 SSE 连接
+			await sseManager.KickOff(userId, tokenId);
+		}
 	}
 
 	/// <summary>
@@ -106,6 +114,11 @@ public class SysUserOnlineService(
 		if (target.GetLoginId() == loginUser.GetLoginId())
 		{
 			await cache.RemoveAsync(OnlineTokenKey + tokenId);
+			if (target.UserId is long userId)
+			{
+				// 通知并关闭被强退设备的 SSE 连接
+				await sseManager.KickOff(userId, tokenId);
+			}
 		}
 	}
 
