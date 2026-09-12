@@ -1,13 +1,11 @@
 declare module '*.vue' {
-	import {DefineComponent} from 'vue';
+	import { DefineComponent } from 'vue';
 	const Component: DefineComponent<{}, {}, any>;
 	export default Component;
 }
 
-declare module 'virtual:svg-icons-register' {
-}
-declare module 'virtual:*' {
-}
+declare module 'virtual:svg-icons-register' {}
+declare module 'virtual:*' {}
 
 // 环境变量
 interface ImportMetaEnv {

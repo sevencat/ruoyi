@@ -35,9 +35,9 @@
 </template>
 
 <script setup lang="ts">
-import type {RouteRecordRaw} from 'vue-router';
-import {usePermissionStore} from '@/store/modules/permission';
-import {useSettingsStore} from '@/store/modules/settings';
+import type { RouteRecordRaw } from 'vue-router';
+import { usePermissionStore } from '@/store/modules/permission';
+import { useSettingsStore } from '@/store/modules/settings';
 import SidebarItem from '../Sidebar/SidebarItem.vue';
 
 const route = useRoute();
@@ -46,7 +46,7 @@ const permissionStore = usePermissionStore();
 
 const theme = computed(() => settingsStore.theme);
 const activeMenu = computed(() => {
-	const {meta, path} = route;
+	const { meta, path } = route;
 	if (meta.activeMenu) {
 		return meta.activeMenu;
 	}
@@ -121,11 +121,12 @@ onMounted(() => {
 	border-radius: 13px;
 	color: var(--topbar-pill-text) !important;
 	background: transparent !important;
-	transition: background-color 0.2s ease,
-	color 0.2s ease,
-	box-shadow 0.2s ease,
-	border-color 0.2s ease,
-	transform 0.2s ease;
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease,
+		box-shadow 0.2s ease,
+		border-color 0.2s ease,
+		transform 0.2s ease;
 }
 
 #app .topbar-menu.el-menu--horizontal > div > a > .el-menu-item:hover,
@@ -227,8 +228,9 @@ html.dark #app .topbar-menu.el-menu--horizontal > .el-sub-menu.is-active > .el-s
 	border: 1px solid rgba(148, 163, 184, 0.14);
 	border-radius: var(--app-radius-base);
 	background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.94)) !important;
-	box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12),
-	inset 0 1px 0 rgba(255, 255, 255, 0.72);
+	box-shadow:
+		0 18px 40px rgba(15, 23, 42, 0.12),
+		inset 0 1px 0 rgba(255, 255, 255, 0.72);
 }
 
 .topbar-menu-popper .el-menu--popup .el-menu-item,
@@ -242,10 +244,11 @@ html.dark #app .topbar-menu.el-menu--horizontal > .el-sub-menu.is-active > .el-s
 	border-radius: 12px;
 	color: var(--app-text-title) !important;
 	background: transparent !important;
-	transition: background-color 0.2s ease,
-	color 0.2s ease,
-	box-shadow 0.2s ease,
-	transform 0.2s ease;
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease,
+		box-shadow 0.2s ease,
+		transform 0.2s ease;
 }
 
 .topbar-menu-popper .el-menu--popup .el-menu-item:last-child,
@@ -294,8 +297,9 @@ html.dark #app .topbar-menu.el-menu--horizontal > .el-sub-menu.is-active > .el-s
 html.dark .topbar-menu-popper .el-menu--popup {
 	border-color: rgba(71, 85, 105, 0.34);
 	background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.94)) !important;
-	box-shadow: 0 20px 42px rgba(0, 0, 0, 0.34),
-	inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	box-shadow:
+		0 20px 42px rgba(0, 0, 0, 0.34),
+		inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 html.dark .topbar-menu-popper .el-menu--popup .el-menu-item,

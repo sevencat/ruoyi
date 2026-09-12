@@ -4,7 +4,6 @@ using FreeSql;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using sevencat.common;
-using sevencat.common.entity;
 using sevencat.ruoyi.common.db.util;
 using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.common.exception;

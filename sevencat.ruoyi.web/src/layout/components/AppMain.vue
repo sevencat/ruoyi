@@ -3,19 +3,19 @@
 		<router-view v-slot="{ Component, route }">
 			<transition :enter-active-class="animate" mode="out-in">
 				<keep-alive :include="tagsViewStore.cachedViews">
-					<component :is="Component" v-if="!route.meta.link" :key="route.path"/>
+					<component :is="Component" v-if="!route.meta.link" :key="route.path" />
 				</keep-alive>
 			</transition>
 		</router-view>
-		<iframe-toggle/>
+		<iframe-toggle />
 	</section>
 </template>
 
 <script setup name="AppMain" lang="ts">
 import animateConfig from '@/animate';
-import {useFullHeightTable} from '@/hooks/table/useFullHeightTable';
-import {useSettingsStore} from '@/store/modules/settings';
-import {useTagsViewStore} from '@/store/modules/tagsView';
+import { useFullHeightTable } from '@/hooks/table/useFullHeightTable';
+import { useSettingsStore } from '@/store/modules/settings';
+import { useTagsViewStore } from '@/store/modules/tagsView';
 import IframeToggle from './IframeToggle/index.vue';
 
 const route = useRoute();
@@ -28,12 +28,14 @@ watch(
 	() => useSettingsStore().animationEnable,
 	(val: boolean) => {
 		if (val) {
-			animate.value = animateConfig.animateList[Math.floor(Math.random() * animateConfig.animateList.length)] as string;
+			animate.value = animateConfig.animateList[
+				Math.floor(Math.random() * animateConfig.animateList.length)
+			] as string;
 		} else {
 			animate.value = animateConfig.defaultAnimate as string;
 		}
 	},
-	{immediate: true}
+	{ immediate: true }
 );
 
 watchEffect(() => {

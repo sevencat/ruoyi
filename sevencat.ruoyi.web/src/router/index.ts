@@ -1,4 +1,4 @@
-import {createRouter, createWebHistory, type RouteRecordRaw} from 'vue-router';
+import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
 /* Layout */
 import Layout from '@/layout/index.vue';
 
@@ -71,7 +71,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 				path: '/index',
 				component: () => import('@/views/index.vue'),
 				name: 'Index',
-				meta: {title: '首页', icon: 'dashboard', affix: true}
+				meta: { title: '首页', icon: 'dashboard', affix: true }
 			}
 		]
 	},
@@ -85,7 +85,7 @@ export const constantRoutes: RouteRecordRaw[] = [
 				path: 'profile',
 				component: () => import('@/views/system/user/profile/index.vue'),
 				name: 'Profile',
-				meta: {title: '个人中心', icon: 'user'}
+				meta: { title: '个人中心', icon: 'user' }
 			}
 		]
 	}
@@ -105,7 +105,7 @@ const router = createRouter({
 		if (savedPosition) {
 			return savedPosition;
 		}
-		return {top: 0};
+		return { top: 0 };
 	}
 });
 

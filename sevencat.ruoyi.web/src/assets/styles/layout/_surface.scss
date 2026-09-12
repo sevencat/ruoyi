@@ -7,18 +7,18 @@
 // --- 可复用面板条（hover 抬升阴影，非 el-card） ---
 .panel,
 .search {
-  margin-bottom: 0.75rem;
-  border-radius: var(--app-radius-base);
-  border: 1px solid var(--app-surface-border);
-  background-color: var(--app-surface-bg);
-  padding: 0.75rem;
-  box-shadow: 0 0 0 rgba(0, 0, 0, 0);
-  transition:
-    box-shadow 0.2s ease,
-    border-color 0.2s ease;
+	margin-bottom: 0.75rem;
+	border-radius: var(--app-radius-base);
+	border: 1px solid var(--app-surface-border);
+	background-color: var(--app-surface-bg);
+	padding: 0.75rem;
+	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+	transition:
+		box-shadow 0.2s ease,
+		border-color 0.2s ease;
 
-  &:hover {
-    box-shadow: var(--app-shadow-sm);
-    border-color: rgba(64, 158, 255, 0.2);
-  }
+	&:hover {
+		box-shadow: var(--app-shadow-sm);
+		border-color: rgba(64, 158, 255, 0.2);
+	}
 }

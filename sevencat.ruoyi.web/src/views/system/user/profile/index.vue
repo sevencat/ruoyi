@@ -10,50 +10,50 @@
 					</template>
 					<div class="profile-summary">
 						<div class="text-center profile-avatar">
-							<userAvatar/>
+							<userAvatar />
 						</div>
 						<ul class="list-group list-group-striped">
 							<li class="list-group-item">
 								<div class="profile-item-label">
-									<svg-icon icon-class="user"/>
+									<svg-icon icon-class="user" />
 									<span>用户名称</span>
 								</div>
 								<span class="profile-item-value">{{ state.user.userName || '-' }}</span>
 							</li>
 							<li class="list-group-item">
 								<div class="profile-item-label">
-									<svg-icon icon-class="phone"/>
+									<svg-icon icon-class="phone" />
 									<span>手机号码</span>
 								</div>
 								<span class="profile-item-value">{{ state.user.phoneNumber || '-' }}</span>
 							</li>
 							<li class="list-group-item">
 								<div class="profile-item-label">
-									<svg-icon icon-class="email"/>
+									<svg-icon icon-class="email" />
 									<span>用户邮箱</span>
 								</div>
 								<span class="profile-item-value">{{ state.user.email || '-' }}</span>
 							</li>
 							<li class="list-group-item">
 								<div class="profile-item-label">
-									<svg-icon icon-class="tree"/>
+									<svg-icon icon-class="tree" />
 									<span>所属部门</span>
 								</div>
 								<span v-if="state.user.deptName" class="profile-item-value">
-                  {{ state.user.deptName }} / {{ state.postGroup }}
-                </span>
+									{{ state.user.deptName }} / {{ state.postGroup }}
+								</span>
 								<span v-else class="profile-item-value">-</span>
 							</li>
 							<li class="list-group-item">
 								<div class="profile-item-label">
-									<svg-icon icon-class="peoples"/>
+									<svg-icon icon-class="peoples" />
 									<span>所属角色</span>
 								</div>
 								<span class="profile-item-value">{{ state.roleGroup || '-' }}</span>
 							</li>
 							<li class="list-group-item">
 								<div class="profile-item-label">
-									<svg-icon icon-class="date"/>
+									<svg-icon icon-class="date" />
 									<span>创建日期</span>
 								</div>
 								<span class="profile-item-value">{{ state.user.createTime || '-' }}</span>
@@ -74,16 +74,16 @@
 					</template>
 					<el-tabs v-model="activeTab" class="profile-tabs">
 						<el-tab-pane label="基本资料" name="userinfo">
-							<userInfo :user="userForm"/>
+							<userInfo :user="userForm" />
 						</el-tab-pane>
 						<el-tab-pane label="修改密码" name="resetPwd">
-							<resetPwd/>
+							<resetPwd />
 						</el-tab-pane>
-<!--						<el-tab-pane label="第三方应用" name="thirdParty">-->
-<!--							<thirdParty :auths="state.auths"/>-->
-<!--						</el-tab-pane>-->
+						<!--						<el-tab-pane label="第三方应用" name="thirdParty">-->
+						<!--							<thirdParty :auths="state.auths"/>-->
+						<!--						</el-tab-pane>-->
 						<el-tab-pane label="在线设备" name="onlineDevice">
-							<onlineDevice :devices="state.devices"/>
+							<onlineDevice :devices="state.devices" />
 						</el-tab-pane>
 					</el-tabs>
 				</el-card>
@@ -93,10 +93,10 @@
 </template>
 
 <script setup name="Profile" lang="ts">
-import {getOnline} from '@/api/monitor/online';
-import {getAuthList} from '@/api/system/social/auth';
-import {getUserProfile} from '@/api/system/user';
-import {UserVO} from '@/api/system/user/types';
+import { getOnline } from '@/api/monitor/online';
+import { getAuthList } from '@/api/system/social/auth';
+import { getUserProfile } from '@/api/system/user';
+import { UserVO } from '@/api/system/user/types';
 import OnlineDevice from './onlineDevice.vue';
 import ResetPwd from './resetPwd.vue';
 import ThirdParty from './thirdParty.vue';
@@ -126,7 +126,7 @@ const userForm = ref({});
 const getUser = async () => {
 	const res = await getUserProfile();
 	state.value.user = res.data.user;
-	userForm.value = {...res.data.user};
+	userForm.value = { ...res.data.user };
 	state.value.roleGroup = res.data.roleGroup;
 	state.value.postGroup = res.data.postGroup;
 };

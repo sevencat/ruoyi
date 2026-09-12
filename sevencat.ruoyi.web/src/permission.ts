@@ -1,18 +1,18 @@
-import {to as tos} from 'await-to-js';
-import {ElMessage} from 'element-plus/es';
+import { to as tos } from 'await-to-js';
+import { ElMessage } from 'element-plus/es';
 import * as NProgressModule from 'nprogress';
 import 'nprogress/nprogress.css';
-import {usePermissionStore} from '@/store/modules/permission';
-import {useSettingsStore} from '@/store/modules/settings';
-import {useUserStore} from '@/store/modules/user';
-import {getToken} from '@/utils/auth';
-import {isHandledRequestError, isRelogin} from '@/utils/request';
-import {isHttp, isPathMatch} from '@/utils/validate';
+import { usePermissionStore } from '@/store/modules/permission';
+import { useSettingsStore } from '@/store/modules/settings';
+import { useUserStore } from '@/store/modules/user';
+import { getToken } from '@/utils/auth';
+import { isHandledRequestError, isRelogin } from '@/utils/request';
+import { isHttp, isPathMatch } from '@/utils/validate';
 import router from './router';
 
 const NProgress = ('default' in NProgressModule ? NProgressModule.default : NProgressModule) as typeof NProgressModule;
 
-NProgress.configure({showSpinner: false});
+NProgress.configure({ showSpinner: false });
 const whiteList = ['/login', '/register', '/social-callback', '/register*', '/register/*'];
 
 const isWhiteList = (path: string) => {
@@ -26,7 +26,7 @@ router.beforeEach(async (to, from) => {
 		/* has token*/
 		if (to.path === '/login') {
 			NProgress.done();
-			return {path: '/'};
+			return { path: '/' };
 		} else if (isWhiteList(to.path)) {
 			return true;
 		} else {
@@ -39,7 +39,7 @@ router.beforeEach(async (to, from) => {
 					if (!isHandledRequestError(err)) {
 						ElMessage.error(err instanceof Error ? err.message : String(err));
 					}
-					return {path: '/'};
+					return { path: '/' };
 				} else {
 					isRelogin.show = false;
 					const accessRoutes = await usePermissionStore().generateRoutes();

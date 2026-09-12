@@ -10,11 +10,11 @@ import request from '@/utils/request';
  */
 
 export const listClient = (query?: ClientQuery): AxiosPromise<PageResult<ClientVO>> => {
-  return request({
-    url: '/system/client/list',
-    method: 'get',
-    params: query
-  });
+	return request({
+		url: '/system/client/list',
+		method: 'get',
+		params: query
+	});
 };
 
 /**
@@ -22,10 +22,10 @@ export const listClient = (query?: ClientQuery): AxiosPromise<PageResult<ClientV
  * @param id
  */
 export const getClient = (id: string | number): AxiosPromise<ClientVO> => {
-  return request({
-    url: '/system/client/' + id,
-    method: 'get'
-  });
+	return request({
+		url: '/system/client/' + id,
+		method: 'get'
+	});
 };
 
 /**
@@ -33,11 +33,11 @@ export const getClient = (id: string | number): AxiosPromise<ClientVO> => {
  * @param data
  */
 export const addClient = (data: ClientForm) => {
-  return request({
-    url: '/system/client',
-    method: 'post',
-    data: data
-  });
+	return request({
+		url: '/system/client',
+		method: 'post',
+		data: data
+	});
 };
 
 /**
@@ -45,11 +45,11 @@ export const addClient = (data: ClientForm) => {
  * @param data
  */
 export const updateClient = (data: ClientForm) => {
-  return request({
-    url: '/system/client',
-    method: 'put',
-    data: data
-  });
+	return request({
+		url: '/system/client',
+		method: 'put',
+		data: data
+	});
 };
 
 /**
@@ -57,10 +57,10 @@ export const updateClient = (data: ClientForm) => {
  * @param id
  */
 export const delClient = (id: string | number | Array<string | number>) => {
-  return request({
-    url: '/system/client/' + id,
-    method: 'delete'
-  });
+	return request({
+		url: '/system/client/' + id,
+		method: 'delete'
+	});
 };
 
 /**
@@ -69,13 +69,13 @@ export const delClient = (id: string | number | Array<string | number>) => {
  * @param status 状态
  */
 export function changeStatus(clientId: string, status: string) {
-  const data = {
-    clientId,
-    status
-  };
-  return request({
-    url: '/system/client/changeStatus',
-    method: 'put',
-    data: data
-  });
+	const data = {
+		clientId,
+		status
+	};
+	return request({
+		url: '/system/client/changeStatus',
+		method: 'put',
+		data: data
+	});
 }

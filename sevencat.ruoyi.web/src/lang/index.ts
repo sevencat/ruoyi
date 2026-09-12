@@ -9,22 +9,22 @@ import zh_CN from '@/lang/zh_CN';
  * @returns zh-cn|en ...
  */
 export const getLanguage = (): LanguageEnum => {
-  const language = useStorage<LanguageEnum>('language', LanguageEnum.zh_CN);
-  if (language.value) {
-    return language.value;
-  }
-  return LanguageEnum.zh_CN;
+	const language = useStorage<LanguageEnum>('language', LanguageEnum.zh_CN);
+	if (language.value) {
+		return language.value;
+	}
+	return LanguageEnum.zh_CN;
 };
 
 const i18n = createI18n({
-  globalInjection: true,
-  allowComposition: true,
-  legacy: false,
-  locale: getLanguage(),
-  messages: {
-    zh_CN: zh_CN,
-    en_US: en_US
-  }
+	globalInjection: true,
+	allowComposition: true,
+	legacy: false,
+	locale: getLanguage(),
+	messages: {
+		zh_CN: zh_CN,
+		en_US: en_US
+	}
 });
 
 export default i18n;

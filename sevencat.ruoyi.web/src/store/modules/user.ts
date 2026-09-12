@@ -1,12 +1,12 @@
-import {to} from 'await-to-js';
-import {defineStore} from 'pinia';
-import {ref} from 'vue';
-import type {UserInfo} from '@/api/system/user/types';
-import type {LoginData, LoginResult} from '@/api/types';
-import type {RuoYiAjaxResult} from '@/utils/api-types';
-import {getInfo as getUserInfo, login as loginApi, logout as logoutApi} from '@/api/login';
+import { to } from 'await-to-js';
+import { defineStore } from 'pinia';
+import { ref } from 'vue';
+import type { UserInfo } from '@/api/system/user/types';
+import type { LoginData, LoginResult } from '@/api/types';
+import type { RuoYiAjaxResult } from '@/utils/api-types';
+import { getInfo as getUserInfo, login as loginApi, logout as logoutApi } from '@/api/login';
 import defAva from '@/assets/images/profile.jpg';
-import {getToken, removeToken, setToken} from '@/utils/auth';
+import { getToken, removeToken, setToken } from '@/utils/auth';
 
 export const useUserStore = defineStore('user', () => {
 	const token = ref(getToken());

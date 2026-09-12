@@ -1,11 +1,11 @@
-import {ElNotification} from 'element-plus';
-import type {MessageVO} from '@/api/system/message/types';
-import {getMessageBox} from '@/api/system/message';
-import {useNoticeStore} from '@/store/modules/notice';
-import {useUserStore} from '@/store/modules/user';
-import {getToken} from '@/utils/auth';
-import {isMessageRead} from '@/utils/message-read';
-import {parsePushMessage, resolveNoticeGroup, resolveNoticeTitle, shouldAppendNotice} from '@/utils/push-message';
+import { ElNotification } from 'element-plus';
+import type { MessageVO } from '@/api/system/message/types';
+import { getMessageBox } from '@/api/system/message';
+import { useNoticeStore } from '@/store/modules/notice';
+import { useUserStore } from '@/store/modules/user';
+import { getToken } from '@/utils/auth';
+import { isMessageRead } from '@/utils/message-read';
+import { parsePushMessage, resolveNoticeGroup, resolveNoticeTitle, shouldAppendNotice } from '@/utils/push-message';
 
 let closePushConnection: (() => void) | undefined;
 let stopPushWatchers: Array<() => void> = [];
@@ -85,7 +85,7 @@ const buildWsUrl = (path: string) => {
 };
 
 const initSsePush = (url: string) => {
-	const {data, error, close} = useEventSource(url, [], {
+	const { data, error, close } = useEventSource(url, [], {
 		autoReconnect: {
 			retries: 5,
 			delay: 5000,
@@ -110,7 +110,7 @@ const initSsePush = (url: string) => {
 };
 
 const initWsPush = (url: string) => {
-	const {close} = useWebSocket(url, {
+	const { close } = useWebSocket(url, {
 		autoReconnect: {
 			retries: 3,
 			delay: 1000,
@@ -153,7 +153,7 @@ export const initMessageBox = async () => {
 		useNoticeStore().clearNotice();
 		return;
 	}
-	const {data} = await getMessageBox();
+	const { data } = await getMessageBox();
 	const notices = [...(data?.systemList ?? []), ...(data?.noticeList ?? []), ...(data?.workflowList ?? [])].map(
 		toNoticeItem
 	);

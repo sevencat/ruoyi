@@ -9,7 +9,6 @@
 		"type": "git",
 		"url": "https://gitee.com/JavaLionLi/plus-ui.git"
 	},
-	"packageManager": "pnpm@10.34.5",
 	"type": "module",
 	"scripts": {
 		"build": "vite build --mode production",
@@ -79,5 +78,6 @@
 	"engines": {
 		"node": ">=20.19.0",
 		"pnpm": ">=10.0.0"
-	}
+	},
+	"packageManager": "pnpm@10.34.5"
 }

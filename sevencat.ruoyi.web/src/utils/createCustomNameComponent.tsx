@@ -6,37 +6,37 @@
 import { Component, defineComponent, h } from 'vue';
 
 interface Options {
-  name?: string;
+	name?: string;
 }
 
 export function createCustomNameComponent(loader: () => Promise<any>, options: Options = {}): () => Promise<Component> {
-  const { name } = options;
-  let component: Component | null = null;
-  let wrappedComponent: Component | null = null;
+	const { name } = options;
+	let component: Component | null = null;
+	let wrappedComponent: Component | null = null;
 
-  const load = async () => {
-    try {
-      const { default: loadedComponent } = await loader();
-      component = loadedComponent;
-    } catch (error) {
-      console.error(`Cannot resolve component ${name}, error:`, error);
-    }
-  };
+	const load = async () => {
+		try {
+			const { default: loadedComponent } = await loader();
+			component = loadedComponent;
+		} catch (error) {
+			console.error(`Cannot resolve component ${name}, error:`, error);
+		}
+	};
 
-  return async () => {
-    if (!component) {
-      await load();
-    }
+	return async () => {
+		if (!component) {
+			await load();
+		}
 
-    if (!wrappedComponent) {
-      wrappedComponent = defineComponent({
-        name,
-        render() {
-          return h(component as Component);
-        }
-      });
-    }
+		if (!wrappedComponent) {
+			wrappedComponent = defineComponent({
+				name,
+				render() {
+					return h(component as Component);
+				}
+			});
+		}
 
-    return Promise.resolve(wrappedComponent);
-  };
+		return Promise.resolve(wrappedComponent);
+	};
 }

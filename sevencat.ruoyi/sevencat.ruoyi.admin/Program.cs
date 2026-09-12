@@ -42,6 +42,8 @@ public class Program
 		var module = new AutofacAnnotationModule(typeof(Program).Assembly,
 			typeof(CommonModule).Assembly,
 			typeof(SysModule).Assembly);
+		//!!!缺省使用单例，能用单例就用单例，单例中要使用perdepency的可以用IocFactory或者Func<T>注入
+		//scope的请使用IHttpContext里的那个service，那里面其实就是个child ILifetimescope
 		module.SetDefaultAutofacScopeToSingleInstance();
 		module.SetDefaultValueResource(config);
 		builder.RegisterModule(module);

@@ -26,7 +26,7 @@
 			<template #title>更多菜单</template>
 			<template v-for="(item, index) in topMenus">
 				<el-menu-item v-if="index >= visibleNumber" :key="index" :index="item.path">
-					<svg-icon :icon-class="item.meta ? item.meta.icon : ''"/>
+					<svg-icon :icon-class="item.meta ? item.meta.icon : ''" />
 					{{ item.meta?.title }}
 				</el-menu-item>
 			</template>
@@ -35,12 +35,12 @@
 </template>
 
 <script setup lang="ts">
-import {RouteRecordRaw} from 'vue-router';
-import {constantRoutes} from '@/router';
-import {useAppStore} from '@/store/modules/app';
-import {usePermissionStore} from '@/store/modules/permission';
-import {useSettingsStore} from '@/store/modules/settings';
-import {isHttp} from '@/utils/validate';
+import { RouteRecordRaw } from 'vue-router';
+import { constantRoutes } from '@/router';
+import { useAppStore } from '@/store/modules/app';
+import { usePermissionStore } from '@/store/modules/permission';
+import { useSettingsStore } from '@/store/modules/settings';
+import { isHttp } from '@/utils/validate';
 
 // 顶部栏初始数
 const visibleNumber = ref<number>(-1);
@@ -97,7 +97,7 @@ const childrenMenus = computed(() => {
 
 // 默认激活的菜单
 const activeMenu = computed(() => {
-	const {meta} = route;
+	const { meta } = route;
 	let path = meta.activeMenu || route.path;
 	if (path === '/index' || route.path === '/index') {
 		path = '/system/user';
@@ -135,9 +135,9 @@ const handleSelect = (key: string) => {
 		const routeMenu = childrenMenus.value.find(item => item.path === key);
 		if (routeMenu && routeMenu.query) {
 			const query = JSON.parse(routeMenu.query);
-			router.push({path: key, query: query});
+			router.push({ path: key, query: query });
 		} else {
-			router.push({path: key});
+			router.push({ path: key });
 		}
 		appStore.toggleSideBarHide(true);
 	} else {
@@ -214,11 +214,12 @@ onMounted(() => {
 	border-radius: 13px;
 	color: var(--topbar-pill-text) !important;
 	background: transparent !important;
-	transition: background-color 0.2s ease,
-	color 0.2s ease,
-	box-shadow 0.2s ease,
-	border-color 0.2s ease,
-	transform 0.2s ease;
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease,
+		box-shadow 0.2s ease,
+		border-color 0.2s ease,
+		transform 0.2s ease;
 }
 
 #app .mix-topnav-menu.el-menu--horizontal > .el-menu-item:hover,
@@ -304,10 +305,11 @@ onMounted(() => {
 	border-radius: 12px;
 	color: var(--app-text-title) !important;
 	background: transparent !important;
-	transition: background-color 0.2s ease,
-	color 0.2s ease,
-	box-shadow 0.2s ease,
-	transform 0.2s ease;
+	transition:
+		background-color 0.2s ease,
+		color 0.2s ease,
+		box-shadow 0.2s ease,
+		transform 0.2s ease;
 }
 
 .mix-topnav-popper .el-menu--popup .el-menu-item:last-child,
@@ -363,8 +365,9 @@ html.dark .mix-topnav-menu.el-menu--horizontal {
 html.dark .mix-topnav-popper .el-menu--popup {
 	border-color: rgba(71, 85, 105, 0.34);
 	background: linear-gradient(180deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.94)) !important;
-	box-shadow: 0 20px 42px rgba(0, 0, 0, 0.34),
-	inset 0 1px 0 rgba(255, 255, 255, 0.06);
+	box-shadow:
+		0 20px 42px rgba(0, 0, 0, 0.34),
+		inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 html.dark .mix-topnav-popper .el-menu--popup .el-menu-item,

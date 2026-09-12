@@ -11,11 +11,11 @@ import type { UserForm, UserInfoVO, UserProfileForm, UserQuery, UserVO } from '.
  * @param query
  */
 export const listUser = (query: UserQuery): AxiosPromise<PageResult<UserVO>> => {
-  return request({
-    url: '/system/user/list',
-    method: 'get',
-    params: query
-  });
+	return request({
+		url: '/system/user/list',
+		method: 'get',
+		params: query
+	});
 };
 
 /**
@@ -23,10 +23,10 @@ export const listUser = (query: UserQuery): AxiosPromise<PageResult<UserVO>> => 
  * @param userIds
  */
 export const optionSelect = (userIds: (number | string)[]): AxiosPromise<UserVO[]> => {
-  return request({
-    url: '/system/user/optionselect?userIds=' + userIds,
-    method: 'get'
-  });
+	return request({
+		url: '/system/user/optionselect?userIds=' + userIds,
+		method: 'get'
+	});
 };
 
 /**
@@ -34,32 +34,32 @@ export const optionSelect = (userIds: (number | string)[]): AxiosPromise<UserVO[
  * @param userId
  */
 export const getUser = (userId?: string | number): AxiosPromise<UserInfoVO> => {
-  return request({
-    url: '/system/user/' + parseStrEmpty(userId),
-    method: 'get'
-  });
+	return request({
+		url: '/system/user/' + parseStrEmpty(userId),
+		method: 'get'
+	});
 };
 
 /**
  * 新增用户
  */
 export const addUser = (data: UserForm) => {
-  return request({
-    url: '/system/user',
-    method: 'post',
-    data: data
-  });
+	return request({
+		url: '/system/user',
+		method: 'post',
+		data: data
+	});
 };
 
 /**
  * 修改用户
  */
 export const updateUser = (data: UserForm) => {
-  return request({
-    url: '/system/user',
-    method: 'put',
-    data: data
-  });
+	return request({
+		url: '/system/user',
+		method: 'put',
+		data: data
+	});
 };
 
 /**
@@ -67,10 +67,10 @@ export const updateUser = (data: UserForm) => {
  * @param userId 用户ID
  */
 export const delUser = (userId: Array<string | number> | string | number) => {
-  return request({
-    url: '/system/user/' + userId,
-    method: 'delete'
-  });
+	return request({
+		url: '/system/user/' + userId,
+		method: 'delete'
+	});
 };
 
 /**
@@ -79,19 +79,19 @@ export const delUser = (userId: Array<string | number> | string | number) => {
  * @param password 密码
  */
 export const resetUserPwd = (userId: string | number, password: string) => {
-  const data = {
-    userId,
-    password
-  };
-  return request({
-    url: '/system/user/resetPwd',
-    method: 'put',
-    headers: {
-      isEncrypt: true,
-      repeatSubmit: false
-    },
-    data: data
-  });
+	const data = {
+		userId,
+		password
+	};
+	return request({
+		url: '/system/user/resetPwd',
+		method: 'put',
+		headers: {
+			isEncrypt: true,
+			repeatSubmit: false
+		},
+		data: data
+	});
 };
 
 /**
@@ -100,15 +100,15 @@ export const resetUserPwd = (userId: string | number, password: string) => {
  * @param status 用户状态
  */
 export const changeUserStatus = (userId: number | string, status: string) => {
-  const data = {
-    userId,
-    status
-  };
-  return request({
-    url: '/system/user/changeStatus',
-    method: 'put',
-    data: data
-  });
+	const data = {
+		userId,
+		status
+	};
+	return request({
+		url: '/system/user/changeStatus',
+		method: 'put',
+		data: data
+	});
 };
 
 /**
@@ -116,20 +116,20 @@ export const changeUserStatus = (userId: number | string, status: string) => {
  * @param userId 用户ID
  */
 export const unlockUser = (userId: number | string) => {
-  return request({
-    url: '/system/user/unlock/' + userId,
-    method: 'get'
-  });
+	return request({
+		url: '/system/user/unlock/' + userId,
+		method: 'get'
+	});
 };
 
 /**
  * 查询用户个人信息
  */
 export const getUserProfile = (): AxiosPromise<UserInfoVO> => {
-  return request({
-    url: '/system/user/profile',
-    method: 'get'
-  });
+	return request({
+		url: '/system/user/profile',
+		method: 'get'
+	});
 };
 
 /**
@@ -137,11 +137,11 @@ export const getUserProfile = (): AxiosPromise<UserInfoVO> => {
  * @param data 用户信息
  */
 export const updateUserProfile = (data: UserProfileForm) => {
-  return request({
-    url: '/system/user/profile',
-    method: 'put',
-    data: data
-  });
+	return request({
+		url: '/system/user/profile',
+		method: 'put',
+		data: data
+	});
 };
 
 /**
@@ -150,19 +150,19 @@ export const updateUserProfile = (data: UserProfileForm) => {
  * @param newPassword 新密码
  */
 export const updateUserPwd = (oldPassword: string, newPassword: string) => {
-  const data = {
-    oldPassword,
-    newPassword
-  };
-  return request({
-    url: '/system/user/profile/updatePwd',
-    method: 'put',
-    headers: {
-      isEncrypt: true,
-      repeatSubmit: false
-    },
-    data: data
-  });
+	const data = {
+		oldPassword,
+		newPassword
+	};
+	return request({
+		url: '/system/user/profile/updatePwd',
+		method: 'put',
+		headers: {
+			isEncrypt: true,
+			repeatSubmit: false
+		},
+		data: data
+	});
 };
 
 /**
@@ -170,10 +170,10 @@ export const updateUserPwd = (oldPassword: string, newPassword: string) => {
  * @param userId 用户ID
  */
 export const getAuthRole = (userId: string | number): AxiosPromise<{ user: UserVO; roles: RoleVO[] }> => {
-  return request({
-    url: '/system/user/authRole/' + userId,
-    method: 'get'
-  });
+	return request({
+		url: '/system/user/authRole/' + userId,
+		method: 'get'
+	});
 };
 
 /**
@@ -181,11 +181,11 @@ export const getAuthRole = (userId: string | number): AxiosPromise<{ user: UserV
  * @param data 用户ID
  */
 export const updateAuthRole = (data: { userId: string; roleIds: string }) => {
-  return request({
-    url: '/system/user/authRole',
-    method: 'put',
-    params: data
-  });
+	return request({
+		url: '/system/user/authRole',
+		method: 'put',
+		params: data
+	});
 };
 
 /**
@@ -193,37 +193,37 @@ export const updateAuthRole = (data: { userId: string; roleIds: string }) => {
  * @param deptId
  */
 export const listUserByDeptId = (deptId: string | number): AxiosPromise<UserVO[]> => {
-  return request({
-    url: '/system/user/list/dept/' + deptId,
-    method: 'get'
-  });
+	return request({
+		url: '/system/user/list/dept/' + deptId,
+		method: 'get'
+	});
 };
 
 /**
  * 查询部门下拉树结构
  */
 export const deptTreeSelect = (): AxiosPromise<DeptTreeVO[]> => {
-  return request({
-    url: '/system/user/deptTree',
-    method: 'get'
-  });
+	return request({
+		url: '/system/user/deptTree',
+		method: 'get'
+	});
 };
 
 export default {
-  listUser,
-  getUser,
-  optionSelect,
-  addUser,
-  updateUser,
-  delUser,
-  resetUserPwd,
-  changeUserStatus,
-  unlockUser,
-  getUserProfile,
-  updateUserProfile,
-  updateUserPwd,
-  getAuthRole,
-  updateAuthRole,
-  deptTreeSelect,
-  listUserByDeptId
+	listUser,
+	getUser,
+	optionSelect,
+	addUser,
+	updateUser,
+	delUser,
+	resetUserPwd,
+	changeUserStatus,
+	unlockUser,
+	getUserProfile,
+	updateUserProfile,
+	updateUserPwd,
+	getAuthRole,
+	updateAuthRole,
+	deptTreeSelect,
+	listUserByDeptId
 };

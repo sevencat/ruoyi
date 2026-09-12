@@ -6,18 +6,18 @@ import modal from '@/plugins/modal';
 import tab from '@/plugins/tab';
 
 declare module 'vue' {
-  interface ComponentCustomProperties {
-    $modal: typeof modal;
-    $tab: typeof tab;
-    $download: typeof download;
-    $auth: typeof auth;
-    $cache: typeof cache;
-    /**
-     * i18n $t方法支持ts类型提示
-     * @param key i18n key
-     */
-    $t(key: ObjKeysToUnion<LanguageType>): string;
-  }
+	interface ComponentCustomProperties {
+		$modal: typeof modal;
+		$tab: typeof tab;
+		$download: typeof download;
+		$auth: typeof auth;
+		$cache: typeof cache;
+		/**
+		 * i18n $t方法支持ts类型提示
+		 * @param key i18n key
+		 */
+		$t(key: ObjKeysToUnion<LanguageType>): string;
+	}
 }
 
 /**
@@ -25,7 +25,7 @@ declare module 'vue' {
  * https://juejin.cn/post/7280062870670606397
  */
 export type ObjKeysToUnion<T, P extends string = ''> = T extends object
-  ? {
-      [K in keyof T]: ObjKeysToUnion<T[K], P extends '' ? `${K & string}` : `${P}.${K & string}`>;
-    }[keyof T]
-  : P;
+	? {
+			[K in keyof T]: ObjKeysToUnion<T[K], P extends '' ? `${K & string}` : `${P}.${K & string}`>;
+		}[keyof T]
+	: P;

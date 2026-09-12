@@ -9,11 +9,11 @@ import request from '@/utils/request';
  * @returns {*}
  */
 export const listDemo = (query?: DemoQuery): AxiosPromise<PageResult<DemoVO>> => {
-  return request({
-    url: '/demo/demo/list',
-    method: 'get',
-    params: query
-  });
+	return request({
+		url: '/demo/demo/list',
+		method: 'get',
+		params: query
+	});
 };
 
 /**
@@ -21,10 +21,10 @@ export const listDemo = (query?: DemoQuery): AxiosPromise<PageResult<DemoVO>> =>
  * @param id
  */
 export const getDemo = (id: string | number): AxiosPromise<DemoVO> => {
-  return request({
-    url: '/demo/demo/' + id,
-    method: 'get'
-  });
+	return request({
+		url: '/demo/demo/' + id,
+		method: 'get'
+	});
 };
 
 /**
@@ -32,11 +32,11 @@ export const getDemo = (id: string | number): AxiosPromise<DemoVO> => {
  * @param data
  */
 export const addDemo = (data: DemoForm) => {
-  return request({
-    url: '/demo/demo',
-    method: 'post',
-    data: data
-  });
+	return request({
+		url: '/demo/demo',
+		method: 'post',
+		data: data
+	});
 };
 
 /**
@@ -44,11 +44,11 @@ export const addDemo = (data: DemoForm) => {
  * @param data
  */
 export const updateDemo = (data: DemoForm) => {
-  return request({
-    url: '/demo/demo',
-    method: 'put',
-    data: data
-  });
+	return request({
+		url: '/demo/demo',
+		method: 'put',
+		data: data
+	});
 };
 
 /**
@@ -56,8 +56,8 @@ export const updateDemo = (data: DemoForm) => {
  * @param id
  */
 export const delDemo = (id: string | number | Array<string | number>) => {
-  return request({
-    url: '/demo/demo/' + id,
-    method: 'delete'
-  });
+	return request({
+		url: '/demo/demo/' + id,
+		method: 'delete'
+	});
 };

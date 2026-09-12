@@ -1,5 +1,5 @@
 <template>
-  <div v-loading="loading" class="social-callback"></div>
+	<div v-loading="loading" class="social-callback"></div>
 </template>
 
 <script setup lang="ts">
@@ -19,64 +19,64 @@ const state = route.query.state as string;
 const source = route.query.source as string;
 
 const processResponse = async (res: any) => {
-  if (res.code !== 200) {
-    throw new Error(res.msg);
-  }
-  if (res.data !== null) {
-    setToken(res.data.access_token);
-  }
-  ElMessage.success(res.msg);
-  setTimeout(() => {
-    location.href = import.meta.env.VITE_APP_CONTEXT_PATH + 'index';
-  }, 2000);
+	if (res.code !== 200) {
+		throw new Error(res.msg);
+	}
+	if (res.data !== null) {
+		setToken(res.data.access_token);
+	}
+	ElMessage.success(res.msg);
+	setTimeout(() => {
+		location.href = import.meta.env.VITE_APP_CONTEXT_PATH + 'index';
+	}, 2000);
 };
 
 const handleError = (error: any) => {
-  ElMessage.error(error.message);
-  setTimeout(() => {
-    location.href = import.meta.env.VITE_APP_CONTEXT_PATH + 'index';
-  }, 2000);
+	ElMessage.error(error.message);
+	setTimeout(() => {
+		location.href = import.meta.env.VITE_APP_CONTEXT_PATH + 'index';
+	}, 2000);
 };
 
 const callbackByCode = async (data: LoginData) => {
-  try {
-    const res = await callback(data);
-    await processResponse(res);
-    loading.value = false;
-  } catch (error) {
-    handleError(error);
-  }
+	try {
+		const res = await callback(data);
+		await processResponse(res);
+		loading.value = false;
+	} catch (error) {
+		handleError(error);
+	}
 };
 
 const loginByCode = async (data: LoginData) => {
-  try {
-    const res = await login(data);
-    await processResponse(res);
-    loading.value = false;
-  } catch (error) {
-    handleError(error);
-  }
+	try {
+		const res = await login(data);
+		await processResponse(res);
+		loading.value = false;
+	} catch (error) {
+		handleError(error);
+	}
 };
 
 const init = async () => {
-  const data: LoginData = {
-    socialCode: code,
-    socialState: state,
-    source: source,
-    clientId: import.meta.env.VITE_APP_CLIENT_ID,
-    grantType: 'social'
-  };
+	const data: LoginData = {
+		socialCode: code,
+		socialState: state,
+		source: source,
+		clientId: import.meta.env.VITE_APP_CLIENT_ID,
+		grantType: 'social'
+	};
 
-  if (!getToken()) {
-    await loginByCode(data);
-  } else {
-    await callbackByCode(data);
-  }
+	if (!getToken()) {
+		await loginByCode(data);
+	} else {
+		await callbackByCode(data);
+	}
 };
 
 onMounted(() => {
-  nextTick(() => {
-    init();
-  });
+	nextTick(() => {
+		init();
+	});
 });
 </script>

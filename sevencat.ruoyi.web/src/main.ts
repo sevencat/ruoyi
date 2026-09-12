@@ -21,7 +21,7 @@ import router from './router';
 import store from './store';
 
 VxeUI.setConfig({
-  zIndex: 999999
+	zIndex: 999999
 });
 
 ElDialog.props.closeOnClickModal.default = false;

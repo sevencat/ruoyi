@@ -1,8 +1,8 @@
-import {defineConfig, loadEnv} from 'vite';
-import createPlugins from './vite/plugins';
 import autoprefixer from 'autoprefixer'; // css自动添加兼容性前缀
+import { defineConfig, loadEnv } from 'vite';
+import createPlugins from './vite/plugins/index.ts';
 
-export default defineConfig(({mode, command}) => {
+export default defineConfig(({ mode, command }) => {
 	const env = loadEnv(mode, process.cwd());
 	return {
 		// 部署生产环境和开发环境下的URL。

@@ -8,11 +8,11 @@ import request from '@/utils/request';
  * @returns {*}
  */
 export const listTree = (query?: TreeQuery): AxiosPromise<TreeVO[]> => {
-  return request({
-    url: '/demo/tree/list',
-    method: 'get',
-    params: query
-  });
+	return request({
+		url: '/demo/tree/list',
+		method: 'get',
+		params: query
+	});
 };
 
 /**
@@ -20,10 +20,10 @@ export const listTree = (query?: TreeQuery): AxiosPromise<TreeVO[]> => {
  * @param id
  */
 export const getTree = (id: string | number): AxiosPromise<TreeVO> => {
-  return request({
-    url: '/demo/tree/' + id,
-    method: 'get'
-  });
+	return request({
+		url: '/demo/tree/' + id,
+		method: 'get'
+	});
 };
 
 /**
@@ -31,11 +31,11 @@ export const getTree = (id: string | number): AxiosPromise<TreeVO> => {
  * @param data
  */
 export const addTree = (data: TreeForm) => {
-  return request({
-    url: '/demo/tree',
-    method: 'post',
-    data: data
-  });
+	return request({
+		url: '/demo/tree',
+		method: 'post',
+		data: data
+	});
 };
 
 /**
@@ -43,11 +43,11 @@ export const addTree = (data: TreeForm) => {
  * @param data
  */
 export const updateTree = (data: TreeForm) => {
-  return request({
-    url: '/demo/tree',
-    method: 'put',
-    data: data
-  });
+	return request({
+		url: '/demo/tree',
+		method: 'put',
+		data: data
+	});
 };
 
 /**
@@ -55,8 +55,8 @@ export const updateTree = (data: TreeForm) => {
  * @param id
  */
 export const delTree = (id: string | number | Array<string | number>) => {
-  return request({
-    url: '/demo/tree/' + id,
-    method: 'delete'
-  });
+	return request({
+		url: '/demo/tree/' + id,
+		method: 'delete'
+	});
 };

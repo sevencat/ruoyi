@@ -3,29 +3,29 @@
 @use '../../tokens/sass-vars' as *;
 
 #app {
-  .mobile {
-    .main-container {
-      margin-left: 0px;
-    }
+	.mobile {
+		.main-container {
+			margin-left: 0px;
+		}
 
-    .sidebar-container {
-      transition: transform 0.28s;
-      width: $base-sidebar-width !important;
-    }
+		.sidebar-container {
+			transition: transform 0.28s;
+			width: $base-sidebar-width !important;
+		}
 
-    &.hideSidebar {
-      .sidebar-container {
-        pointer-events: none;
-        transition-duration: 0.3s;
-        transform: translate3d(calc(-#{$base-sidebar-width} - 12px), 0, 0);
-      }
-    }
-  }
+		&.hideSidebar {
+			.sidebar-container {
+				pointer-events: none;
+				transition-duration: 0.3s;
+				transform: translate3d(calc(-#{$base-sidebar-width} - 12px), 0, 0);
+			}
+		}
+	}
 
-  .withoutAnimation {
-    .main-container,
-    .sidebar-container {
-      transition: none;
-    }
-  }
+	.withoutAnimation {
+		.main-container,
+		.sidebar-container {
+			transition: none;
+		}
+	}
 }

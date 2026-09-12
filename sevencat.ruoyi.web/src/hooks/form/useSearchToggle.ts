@@ -1,17 +1,17 @@
 export function useSearchToggle(initialValue = true) {
-  const showSearch = ref(initialValue);
+	const showSearch = ref(initialValue);
 
-  const toggleSearch = () => {
-    showSearch.value = !showSearch.value;
-  };
+	const toggleSearch = () => {
+		showSearch.value = !showSearch.value;
+	};
 
-  const setShowSearch = (value: boolean) => {
-    showSearch.value = value;
-  };
+	const setShowSearch = (value: boolean) => {
+		showSearch.value = value;
+	};
 
-  return {
-    showSearch,
-    toggleSearch,
-    setShowSearch
-  };
+	return {
+		showSearch,
+		toggleSearch,
+		setShowSearch
+	};
 }

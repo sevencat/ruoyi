@@ -1,15 +1,21 @@
 <template>
 	<div class="profile-auth">
 		<el-table :data="auths" border class="data-table profile-auth-table">
-			<el-table-column label="序号" width="50" type="index"/>
-			<el-table-column label="绑定账号平台" width="140" align="center" prop="source" show-overflow-tooltip/>
+			<el-table-column label="序号" width="50" type="index" />
+			<el-table-column label="绑定账号平台" width="140" align="center" prop="source" show-overflow-tooltip />
 			<el-table-column label="头像" width="120" align="center" prop="avatar">
 				<template #default="scope">
-					<img :src="scope.row.avatar" style="width: 45px; height: 45px"/>
+					<img :src="scope.row.avatar" style="width: 45px; height: 45px" />
 				</template>
 			</el-table-column>
-			<el-table-column label="系统账号" width="180" align="center" prop="userName" :show-overflow-tooltip="true"/>
-			<el-table-column label="绑定时间" width="180" align="center" prop="createTime"/>
+			<el-table-column
+				label="系统账号"
+				width="180"
+				align="center"
+				prop="userName"
+				:show-overflow-tooltip="true"
+			/>
+			<el-table-column label="绑定时间" width="180" align="center" prop="createTime" />
 			<el-table-column label="操作" width="80" align="center" class-name="small-padding fixed-width">
 				<template #default="scope">
 					<el-tooltip content="解绑" placement="top">
@@ -27,31 +33,31 @@
 			<div class="user-bind">
 				<a class="third-app" href="#" title="使用 微信 账号授权登录" @click="authUrl('wechat')">
 					<div class="third-app__icon">
-						<svg-icon icon-class="wechat"/>
+						<svg-icon icon-class="wechat" />
 					</div>
 					<span class="app-name">微信</span>
 				</a>
 				<a class="third-app" href="#" title="使用 MaxKey 账号授权登录" @click="authUrl('maxkey')">
 					<div class="third-app__icon">
-						<svg-icon icon-class="maxkey"/>
+						<svg-icon icon-class="maxkey" />
 					</div>
 					<span class="app-name">MaxKey</span>
 				</a>
 				<a class="third-app" href="#" title="使用 TopIam 账号授权登录" @click="authUrl('topiam')">
 					<div class="third-app__icon">
-						<svg-icon icon-class="topiam"/>
+						<svg-icon icon-class="topiam" />
 					</div>
 					<span class="app-name">TopIam</span>
 				</a>
 				<a class="third-app" href="#" title="使用 Gitee 账号授权登录" @click="authUrl('gitee')">
 					<div class="third-app__icon">
-						<svg-icon icon-class="gitee"/>
+						<svg-icon icon-class="gitee" />
 					</div>
 					<span class="app-name">Gitee</span>
 				</a>
 				<a class="third-app" href="#" title="使用 GitHub 账号授权登录" @click="authUrl('github')">
 					<div class="third-app__icon">
-						<svg-icon icon-class="github"/>
+						<svg-icon icon-class="github" />
 					</div>
 					<span class="app-name">GitHub</span>
 				</a>
@@ -61,10 +67,10 @@
 </template>
 
 <script setup lang="ts">
-import {authUnlock, authRouterUrl} from '@/api/system/social/auth';
+import { authUnlock, authRouterUrl } from '@/api/system/social/auth';
 import modal from '@/plugins/modal';
 import tab from '@/plugins/tab';
-import {propTypes} from '@/utils/propTypes';
+import { propTypes } from '@/utils/propTypes';
 
 const props = defineProps({
 	auths: propTypes.any.isRequired
@@ -84,8 +90,7 @@ const unlockAuth = (row: any) => {
 				modal.msgError(res.msg);
 			}
 		})
-		.catch(() => {
-		});
+		.catch(() => {});
 };
 
 const authUrl = (source: string) => {
@@ -132,9 +137,10 @@ const authUrl = (source: string) => {
 	border: 1px solid var(--app-surface-border);
 	border-radius: 12px;
 	background: var(--app-elevated-soft-bg);
-	transition: transform 0.2s ease,
-	border-color 0.2s ease,
-	box-shadow 0.2s ease;
+	transition:
+		transform 0.2s ease,
+		border-color 0.2s ease,
+		box-shadow 0.2s ease;
 }
 
 .user-bind {

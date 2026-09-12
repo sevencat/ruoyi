@@ -1,16 +1,16 @@
-import type {LoadingInstance} from 'element-plus';
+import type { LoadingInstance } from 'element-plus';
 import axiosModule from 'axios';
-import {HttpStatus} from '@/enums/RespEnum';
-import {getLanguage} from '@/lang';
+import { HttpStatus } from '@/enums/RespEnum';
+import { getLanguage } from '@/lang';
 import cache from '@/plugins/cache';
 import router from '@/router';
-import {useUserStore} from '@/store/modules/user';
-import {getToken} from '@/utils/auth';
-import {decryptBase64, decryptWithAes, encryptBase64, encryptWithAes, generateAesKey} from '@/utils/crypto';
-import {errorCode} from '@/utils/errorCode';
-import {decrypt, encrypt} from '@/utils/jsencrypt';
-import {blobValidate, tansParams} from '@/utils/ruoyi';
-import {saveBlob} from '@/utils/save';
+import { useUserStore } from '@/store/modules/user';
+import { getToken } from '@/utils/auth';
+import { decryptBase64, decryptWithAes, encryptBase64, encryptWithAes, generateAesKey } from '@/utils/crypto';
+import { errorCode } from '@/utils/errorCode';
+import { decrypt, encrypt } from '@/utils/jsencrypt';
+import { blobValidate, tansParams } from '@/utils/ruoyi';
+import { saveBlob } from '@/utils/save';
 
 /** axios 1.13 + TS6：默认导出在类型上会被解析为不可调用的 export= 形态 */
 const axios = axiosModule as any;
@@ -18,7 +18,7 @@ const axios = axiosModule as any;
 const encryptHeader = 'encrypt-key';
 let downloadLoadingInstance: LoadingInstance | undefined;
 // 是否显示重新登录
-export const isRelogin = {show: false};
+export const isRelogin = { show: false };
 
 function createHandledError(message: string) {
 	const error = new Error(message) as Error & { isHandled?: boolean };
@@ -236,13 +236,13 @@ service.interceptors.response.use(
 			}
 			return Promise.reject('无效的会话，或者会话已过期，请重新登录。');
 		} else if (code === HttpStatus.SERVER_ERROR) {
-			ElMessage({message: msg, type: 'error'});
+			ElMessage({ message: msg, type: 'error' });
 			return Promise.reject(createHandledError(msg));
 		} else if (code === HttpStatus.WARN) {
-			ElMessage({message: msg, type: 'warning'});
+			ElMessage({ message: msg, type: 'warning' });
 			return Promise.reject(createHandledError(msg));
 		} else if (code !== HttpStatus.SUCCESS) {
-			ElNotification.error({title: msg});
+			ElNotification.error({ title: msg });
 			return Promise.reject(createHandledError(msg));
 		} else {
 			return Promise.resolve(res.data);
@@ -250,7 +250,7 @@ service.interceptors.response.use(
 	},
 	async (error: any) => {
 		const message = (await extractErrorMessage(error)) || errorCode['default'];
-		ElMessage({message: message, type: 'error', duration: 5 * 1000});
+		ElMessage({ message: message, type: 'error', duration: 5 * 1000 });
 		error.isHandled = true;
 		return Promise.reject(error);
 	}

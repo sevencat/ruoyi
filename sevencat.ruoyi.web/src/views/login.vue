@@ -6,7 +6,7 @@
 				<h1 class="brand-title">企业级后台管理系统</h1>
 				<p class="brand-desc">
 					真正面向企业级的应用框架 组件化 模块化 轻耦合 高扩展 针对企业痛点 业界一流技术栈
-					<br/>
+					<br />
 					重写 RuoYi-Vue 所有功能 集成 Sa-Token、Mybatis-Plus、WarmFlow、SpringDoc、Hutool、OSS 定期同步。
 				</p>
 				<div class="brand-highlights">
@@ -27,7 +27,7 @@
 						<h3 class="title">{{ title }}</h3>
 						<p class="subtitle">使用当前账号体系登录到业务工作台。</p>
 					</div>
-					<lang-select/>
+					<lang-select />
 				</div>
 
 				<el-form-item prop="username">
@@ -39,7 +39,7 @@
 						:placeholder="$t('login.username')"
 					>
 						<template #prefix>
-							<svg-icon icon-class="user" class="el-input__icon input-icon"/>
+							<svg-icon icon-class="user" class="el-input__icon input-icon" />
 						</template>
 					</el-input>
 				</el-form-item>
@@ -54,7 +54,7 @@
 						@keyup.enter="handleLogin"
 					>
 						<template #prefix>
-							<svg-icon icon-class="password" class="el-input__icon input-icon"/>
+							<svg-icon icon-class="password" class="el-input__icon input-icon" />
 						</template>
 					</el-input>
 				</el-form-item>
@@ -68,11 +68,11 @@
 						@keyup.enter="handleLogin"
 					>
 						<template #prefix>
-							<svg-icon icon-class="validCode" class="el-input__icon input-icon"/>
+							<svg-icon icon-class="validCode" class="el-input__icon input-icon" />
 						</template>
 					</el-input>
 					<div class="login-code">
-						<img :src="codeUrl" class="login-code-img" @click="getCode"/>
+						<img :src="codeUrl" class="login-code-img" @click="getCode" />
 					</div>
 				</el-form-item>
 
@@ -87,26 +87,31 @@
 					<span class="social-label">第三方登录</span>
 					<div class="social-actions">
 						<el-button circle :title="$t('login.social.wechat')" @click="doSocialLogin('wechat')">
-							<svg-icon icon-class="wechat"/>
+							<svg-icon icon-class="wechat" />
 						</el-button>
 						<el-button circle :title="$t('login.social.maxkey')" @click="doSocialLogin('maxkey')">
-							<svg-icon icon-class="maxkey"/>
+							<svg-icon icon-class="maxkey" />
 						</el-button>
 						<el-button circle :title="$t('login.social.topiam')" @click="doSocialLogin('topiam')">
-							<svg-icon icon-class="topiam"/>
+							<svg-icon icon-class="topiam" />
 						</el-button>
 						<el-button circle :title="$t('login.social.gitee')" @click="doSocialLogin('gitee')">
-							<svg-icon icon-class="gitee"/>
+							<svg-icon icon-class="gitee" />
 						</el-button>
 						<el-button circle :title="$t('login.social.github')" @click="doSocialLogin('github')">
-							<svg-icon icon-class="github"/>
+							<svg-icon icon-class="github" />
 						</el-button>
 					</div>
 				</div>
 
 				<el-form-item class="submit-row">
-					<el-button :loading="loading" size="large" type="primary" class="submit-button"
-					           @click.prevent="handleLogin">
+					<el-button
+						:loading="loading"
+						size="large"
+						type="primary"
+						class="submit-button"
+						@click.prevent="handleLogin"
+					>
 						<span v-if="!loading">{{ $t('login.login') }}</span>
 						<span v-else>{{ $t('login.logging') }}</span>
 					</el-button>
@@ -121,25 +126,25 @@
 </template>
 
 <script setup lang="ts">
-import {to} from 'await-to-js';
-import {useI18n} from 'vue-i18n';
-import {getCodeImg} from '@/api/login';
-import {authRouterUrl} from '@/api/system/social/auth';
-import {LoginData} from '@/api/types';
-import {HttpStatus} from '@/enums/RespEnum';
-import {useUserStore} from '@/store/modules/user';
+import { to } from 'await-to-js';
+import { useI18n } from 'vue-i18n';
+import { getCodeImg } from '@/api/login';
+import { authRouterUrl } from '@/api/system/social/auth';
+import { LoginData } from '@/api/types';
+import { HttpStatus } from '@/enums/RespEnum';
+import { useUserStore } from '@/store/modules/user';
 
 const title = import.meta.env.VITE_APP_TITLE;
 const currentYear = new Date().getFullYear();
 const quickStats = [
-	{label: '细粒度权限管理', value: '动态权限控制'},
-	{label: '主流技术栈', value: '全栈技术集成'},
-	{label: 'UI样式', value: '卡片式'}
+	{ label: '细粒度权限管理', value: '动态权限控制' },
+	{ label: '主流技术栈', value: '全栈技术集成' },
+	{ label: 'UI样式', value: '卡片式' }
 ];
 const highlights = ['技术栈全面升级', '动态菜单', '多主题布局', '深浅色主题'];
 const userStore = useUserStore();
 const router = useRouter();
-const {t} = useI18n();
+const { t } = useI18n();
 
 const loginForm = ref<LoginData>({
 	username: 'admin',
@@ -185,7 +190,7 @@ watch(
 	(newRoute: any) => {
 		redirect.value = newRoute.query && newRoute.query.redirect && decodeURIComponent(newRoute.query.redirect);
 	},
-	{immediate: true}
+	{ immediate: true }
 );
 
 const handleLogin = () => {
@@ -219,7 +224,7 @@ const handleLogin = () => {
 
 const getCode = async () => {
 	const res = await getCodeImg();
-	const {data} = res;
+	const { data } = res;
 	captchaEnabled.value = data.captchaEnabled === undefined ? true : data.captchaEnabled;
 	if (captchaEnabled.value) {
 		loginForm.value.code = '';
@@ -262,9 +267,10 @@ onMounted(() => {
 	align-items: center;
 	justify-content: center;
 	padding: 40px 24px 88px;
-	background: radial-gradient(circle at 12% 12%, rgba(53, 109, 255, 0.22), transparent 24%),
-	radial-gradient(circle at 88% 18%, rgba(14, 165, 233, 0.18), transparent 24%),
-	linear-gradient(135deg, #071120 0%, #0f1b33 42%, #15345f 100%);
+	background:
+		radial-gradient(circle at 12% 12%, rgba(53, 109, 255, 0.22), transparent 24%),
+		radial-gradient(circle at 88% 18%, rgba(14, 165, 233, 0.18), transparent 24%),
+		linear-gradient(135deg, #071120 0%, #0f1b33 42%, #15345f 100%);
 }
 
 .login-shell {
@@ -289,8 +295,9 @@ onMounted(() => {
 	flex-direction: column;
 	justify-content: space-between;
 	color: #eef4ff;
-	background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-	linear-gradient(135deg, rgba(53, 109, 255, 0.32), rgba(15, 23, 42, 0.24));
+	background:
+		linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+		linear-gradient(135deg, rgba(53, 109, 255, 0.32), rgba(15, 23, 42, 0.24));
 }
 
 .brand-pill {
@@ -481,8 +488,9 @@ onMounted(() => {
 }
 
 .login-form :deep(.el-input__wrapper.is-focus) {
-	box-shadow: 0 0 0 1px rgba(53, 109, 255, 0.24) inset,
-	0 0 0 4px rgba(53, 109, 255, 0.12);
+	box-shadow:
+		0 0 0 1px rgba(53, 109, 255, 0.24) inset,
+		0 0 0 4px rgba(53, 109, 255, 0.12);
 }
 
 .login-form :deep(.el-checkbox__label) {

@@ -2,13 +2,13 @@
 	<div class="sidebar-logo-container" :class="{ collapse: collapse }">
 		<transition :enter-active-class="animateConfig.logoAnimate.enter" mode="out-in">
 			<router-link v-if="collapse" key="collapse" class="sidebar-logo-link" to="/">
-				<img v-if="logo" :src="logo" class="sidebar-logo"/>
+				<img v-if="logo" :src="logo" class="sidebar-logo" />
 				<h1 v-else class="sidebar-title">
 					{{ title }}
 				</h1>
 			</router-link>
 			<router-link v-else key="expand" class="sidebar-logo-link" to="/">
-				<img v-if="logo" :src="logo" class="sidebar-logo"/>
+				<img v-if="logo" :src="logo" class="sidebar-logo" />
 				<h1 class="sidebar-title">
 					{{ title }}
 				</h1>
@@ -20,8 +20,8 @@
 <script setup lang="ts">
 import animateConfig from '@/animate';
 import logo from '@/assets/logo/logo.png';
-import {NavTypeEnum} from '@/enums/NavTypeEnum';
-import {useSettingsStore} from '@/store/modules/settings';
+import { NavTypeEnum } from '@/enums/NavTypeEnum';
+import { useSettingsStore } from '@/store/modules/settings';
 
 defineProps({
 	collapse: {

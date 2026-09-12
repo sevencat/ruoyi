@@ -10,37 +10,43 @@
 				/>
 			</div>
 			<router-link v-else-if="showLogo" to="/" class="navtop-logo-shell">
-				<img :src="appLogo" class="navtop-logo-icon" alt="logo"/>
+				<img :src="appLogo" class="navtop-logo-icon" alt="logo" />
 			</router-link>
 
 			<div class="nav-context">
-				<breadcrumb v-if="navType == NavTypeEnum.LEFT" id="breadcrumb-container" class="breadcrumb-container"/>
-				<top-nav v-if="navType == NavTypeEnum.MIX" id="topmenu-container" class="topmenu-container"/>
+				<breadcrumb v-if="navType == NavTypeEnum.LEFT" id="breadcrumb-container" class="breadcrumb-container" />
+				<top-nav v-if="navType == NavTypeEnum.MIX" id="topmenu-container" class="topmenu-container" />
 
 				<template v-if="navType == NavTypeEnum.TOP">
-					<top-bar id="topbar-container" class="topbar-container"/>
+					<top-bar id="topbar-container" class="topbar-container" />
 				</template>
 			</div>
 		</div>
 		<div class="right-menu flex align-center">
 			<template v-if="appStore.device !== 'mobile'">
-				<search-menu ref="searchMenuRef"/>
+				<search-menu ref="searchMenuRef" />
 				<el-tooltip content="搜索" effect="dark" placement="bottom">
 					<div class="right-menu-item hover-effect" @click="openSearchMenu">
-						<svg-icon class-name="search-icon" icon-class="search"/>
+						<svg-icon class-name="search-icon" icon-class="search" />
 					</div>
 				</el-tooltip>
 				<!-- 消息 -->
 				<el-tooltip :content="$t('navbar.message')" effect="dark" placement="bottom">
 					<div>
-						<el-popover placement="bottom" trigger="click" transition="el-zoom-in-top" :width="300"
-						            :persistent="false">
+						<el-popover
+							placement="bottom"
+							trigger="click"
+							transition="el-zoom-in-top"
+							:width="300"
+							:persistent="false"
+						>
 							<template #reference>
 								<el-badge
 									:value="noticeStore.unreadCount.value > 0 ? noticeStore.unreadCount.value : ''"
-									:max="99">
+									:max="99"
+								>
 									<div class="right-menu-item hover-effect message-trigger">
-										<svg-icon icon-class="message"/>
+										<svg-icon icon-class="message" />
 									</div>
 								</el-badge>
 							</template>
@@ -52,27 +58,27 @@
 				</el-tooltip>
 
 				<el-tooltip :content="$t('navbar.full')" effect="dark" placement="bottom">
-					<screenfull id="screenfull" class="right-menu-item hover-effect"/>
+					<screenfull id="screenfull" class="right-menu-item hover-effect" />
 				</el-tooltip>
 
 				<el-tooltip :content="$t('navbar.language')" effect="dark" placement="bottom">
-					<lang-select v-show="false" id="lang-select" class="right-menu-item hover-effect"/>
+					<lang-select v-show="false" id="lang-select" class="right-menu-item hover-effect" />
 				</el-tooltip>
 
 				<el-tooltip :content="$t('navbar.layoutSize')" effect="dark" placement="bottom">
-					<size-select id="size-select" class="right-menu-item hover-effect"/>
+					<size-select id="size-select" class="right-menu-item hover-effect" />
 				</el-tooltip>
 			</template>
 			<div class="avatar-container">
 				<el-dropdown class="avatar-dropdown" trigger="click" @command="handleCommand">
 					<div class="avatar-wrapper">
-						<img :src="userStore.avatar" class="user-avatar"/>
+						<img :src="userStore.avatar" class="user-avatar" />
 						<div class="avatar-meta">
 							<span class="avatar-name">{{ displayName }}</span>
 							<span class="avatar-role">Workspace</span>
 						</div>
 						<el-icon class="avatar-arrow">
-							<caret-bottom/>
+							<caret-bottom />
 						</el-icon>
 					</div>
 					<template #dropdown>
@@ -95,16 +101,16 @@
 </template>
 
 <script setup lang="ts">
-import type {ElMessageBoxOptions} from 'element-plus';
-import {CaretBottom} from '@element-plus/icons-vue';
+import type { ElMessageBoxOptions } from 'element-plus';
+import { CaretBottom } from '@element-plus/icons-vue';
 import appLogo from '@/assets/logo/logo.png';
-import {NavTypeEnum} from '@/enums/NavTypeEnum';
+import { NavTypeEnum } from '@/enums/NavTypeEnum';
 import tab from '@/plugins/tab';
 import router from '@/router';
-import {useAppStore} from '@/store/modules/app';
-import {useNoticeStore} from '@/store/modules/notice';
-import {useSettingsStore} from '@/store/modules/settings';
-import {useUserStore} from '@/store/modules/user';
+import { useAppStore } from '@/store/modules/app';
+import { useNoticeStore } from '@/store/modules/notice';
+import { useSettingsStore } from '@/store/modules/settings';
+import { useUserStore } from '@/store/modules/user';
 import notice from './notice/index.vue';
 import TopBar from './TopBar/index.vue';
 import SearchMenu from './TopBar/search.vue';
@@ -181,15 +187,17 @@ const handleCommand = (command: string) => {
 		border: 1px solid var(--app-surface-border);
 		background: var(--app-surface-bg);
 		box-shadow: var(--app-shadow-sm);
-		transition: transform 0.2s ease,
-		border-color 0.2s ease,
-		box-shadow 0.2s ease;
+		transition:
+			transform 0.2s ease,
+			border-color 0.2s ease,
+			box-shadow 0.2s ease;
 
 		&:hover {
 			transform: translateY(-1px);
 			border-color: rgba(64, 158, 255, 0.22);
-			box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76),
-			0 10px 22px rgba(15, 23, 42, 0.08);
+			box-shadow:
+				inset 0 1px 0 rgba(255, 255, 255, 0.76),
+				0 10px 22px rgba(15, 23, 42, 0.08);
 		}
 	}
 
@@ -357,8 +365,9 @@ const handleCommand = (command: string) => {
 
 			&.hover-effect {
 				cursor: pointer;
-				transition: background 0.3s,
-				color 0.3s;
+				transition:
+					background 0.3s,
+					color 0.3s;
 
 				&:hover {
 					background: var(--app-accent-soft);
@@ -396,8 +405,9 @@ const handleCommand = (command: string) => {
 				border: 1px solid var(--app-surface-border);
 				min-width: 0;
 				cursor: pointer;
-				transition: background 0.3s,
-				border-color 0.3s;
+				transition:
+					background 0.3s,
+					border-color 0.3s;
 
 				&:hover {
 					background: var(--app-accent-soft);
@@ -449,15 +459,17 @@ html.dark {
 	.navbar.navtop .navtop-logo-shell {
 		background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(30, 41, 59, 0.82));
 		border-color: rgba(71, 85, 105, 0.42);
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
-		0 8px 18px rgba(0, 0, 0, 0.24);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.06),
+			0 8px 18px rgba(0, 0, 0, 0.24);
 	}
 
 	.navbar.navtop .topbar-container {
 		background: linear-gradient(180deg, rgba(15, 23, 42, 0.82), rgba(15, 23, 42, 0.7));
 		border-color: rgba(71, 85, 105, 0.34);
-		box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05),
-		0 8px 22px rgba(0, 0, 0, 0.2);
+		box-shadow:
+			inset 0 1px 0 rgba(255, 255, 255, 0.05),
+			0 8px 22px rgba(0, 0, 0, 0.2);
 	}
 
 	.navbar .right-menu .right-menu-item,

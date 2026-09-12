@@ -11,21 +11,21 @@ const OSS_MARKER_RE = /oss:\/\/([\w-]+)/g;
  * const html = await resolveOssContent('<p><img src="oss://12345"/></p>');
  */
 export async function resolveOssContent(html: string): Promise<string> {
-  if (!html) return html;
+	if (!html) return html;
 
-  const matches = [...html.matchAll(OSS_MARKER_RE)];
-  if (matches.length === 0) return html;
+	const matches = [...html.matchAll(OSS_MARKER_RE)];
+	if (matches.length === 0) return html;
 
-  const ossIds = [...new Set(matches.map(m => m[1]))];
+	const ossIds = [...new Set(matches.map(m => m[1]))];
 
-  try {
-    const res = await listByIds(ossIds.join(','));
-    let result = html;
-    for (const oss of res.data) {
-      result = result.replaceAll(`oss://${oss.ossId}`, oss.url);
-    }
-    return result;
-  } catch {
-    return html;
-  }
+	try {
+		const res = await listByIds(ossIds.join(','));
+		let result = html;
+		for (const oss of res.data) {
+			result = result.replaceAll(`oss://${oss.ossId}`, oss.url);
+		}
+		return result;
+	} catch {
+		return html;
+	}
 }

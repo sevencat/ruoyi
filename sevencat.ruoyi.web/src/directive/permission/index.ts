@@ -1,14 +1,14 @@
-import type {Directive, DirectiveBinding} from 'vue';
-import {useUserStore} from '@/store/modules/user';
+import type { Directive, DirectiveBinding } from 'vue';
+import { useUserStore } from '@/store/modules/user';
 
 /**
  * 操作权限处理
  */
 export const hasPermi: Directive = {
 	mounted(el: HTMLElement, binding: DirectiveBinding) {
-		const {permissions} = useUserStore();
+		const { permissions } = useUserStore();
 		// 「其他角色」按钮权限校验
-		const {value} = binding;
+		const { value } = binding;
 		if (value && value instanceof Array && value.length > 0) {
 			const hasPermission = permissions.some((permi: string) => {
 				return permi === '*:*:*' || value.includes(permi);
@@ -28,8 +28,8 @@ export const hasPermi: Directive = {
  */
 export const hasRoles: Directive = {
 	mounted(el: HTMLElement, binding: DirectiveBinding) {
-		const {value} = binding;
-		const {roles} = useUserStore();
+		const { value } = binding;
+		const { roles } = useUserStore();
 		if (value && value instanceof Array && value.length > 0) {
 			const hasRole = roles.some((role: string) => {
 				return role === 'superadmin' || role === 'admin' || value.includes(role);
