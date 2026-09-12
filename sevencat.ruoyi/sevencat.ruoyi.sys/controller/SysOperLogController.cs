@@ -54,7 +54,7 @@ public class SysOperLogController(
 		var list = await operLogService.SelectOperLogList(bo);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（businessType 的 sys_oper_type、status 的 sys_common_status 等）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
 	}
 
 	/// <summary>

@@ -441,6 +441,6 @@ public class SysUserController(
 	/// <param name="rows">数据行</param>
 	private async Task WriteExcelAsync<T>(IEnumerable<T> rows)
 	{
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, rows, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, rows, ExcelSheetName);
 	}
 }

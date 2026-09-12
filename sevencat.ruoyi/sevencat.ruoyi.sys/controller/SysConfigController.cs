@@ -56,7 +56,7 @@ public class SysConfigController(
 		var list = await configService.SelectConfigList(config);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（configType 的 sys_yes_no）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
 	}
 
 	/// <summary>

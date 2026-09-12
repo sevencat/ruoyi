@@ -53,7 +53,7 @@ public class SysDictTypeController(
 	public async Task Export([FromQuery] SysDictTypeBo dictType)
 	{
 		var list = await dictTypeService.SelectDictTypeList(dictType);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
 	}
 
 	/// <summary>

@@ -56,7 +56,7 @@ public class SysLoginInfoController(
 		var list = await loginInfoService.SelectLoginInfoList(bo);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（deviceType 的 sys_device_type、status 的 sys_common_status）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
 	}
 
 	/// <summary>

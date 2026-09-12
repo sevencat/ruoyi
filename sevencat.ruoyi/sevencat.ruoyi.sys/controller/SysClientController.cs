@@ -55,7 +55,7 @@ public class SysClientController(
 		var list = await clientService.SelectClientList(client);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（status 的 0=正常,1=停用）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
 	}
 
 	/// <summary>

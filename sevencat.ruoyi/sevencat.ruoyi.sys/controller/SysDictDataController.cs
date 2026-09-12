@@ -57,7 +57,7 @@ public class SysDictDataController(
 		var list = await dictDataService.SelectDictDataList(dictData);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat / ExcelDictConvert 的转换器（如 isDefault 的 sys_yes_no）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
 	}
 
 	/// <summary>

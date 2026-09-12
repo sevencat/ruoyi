@@ -7,7 +7,7 @@ namespace sevencat.ruoyi.common.excel;
 /// <summary>
 /// 把数据以 Excel 形式写进当前 HTTP 响应流（对应 Java 的 <c>ExcelBuilder.toResponse</c>）
 /// </summary>
-public static class ExcelResponseWriter
+public static class ExcelHttpExt
 {
 	private static readonly Lazy<IHttpContextAccessor> httpCtxAccessor = IocFactory.CreateLazy<IHttpContextAccessor>();
 

@@ -59,7 +59,7 @@ public class SysRoleController(
 		var list = await roleService.SelectRoleList(role);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（status / dataScope）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
 	}
 
 	/// <summary>
