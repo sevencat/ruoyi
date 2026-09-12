@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, type RouteRecordRaw } from 'vue-router';
+import {createRouter, createWebHistory, type RouteRecordRaw} from 'vue-router';
 /* Layout */
 import Layout from '@/layout/index.vue';
 
@@ -26,69 +26,69 @@ import Layout from '@/layout/index.vue';
 
 // 公共路由
 export const constantRoutes: RouteRecordRaw[] = [
-  {
-    path: '/redirect',
-    component: Layout,
-    hidden: true,
-    children: [
-      {
-        path: '/redirect/:path(.*)',
-        component: () => import('@/views/redirect/index.vue')
-      }
-    ]
-  },
-  {
-    path: '/social-callback',
-    hidden: true,
-    component: () => import('@/layout/components/SocialCallback/index.vue')
-  },
-  {
-    path: '/login',
-    component: () => import('@/views/login.vue'),
-    hidden: true
-  },
-  {
-    path: '/register',
-    component: () => import('@/views/register.vue'),
-    hidden: true
-  },
-  {
-    path: '/:pathMatch(.*)*',
-    component: () => import('@/views/error/404.vue'),
-    hidden: true
-  },
-  {
-    path: '/401',
-    component: () => import('@/views/error/401.vue'),
-    hidden: true
-  },
-  {
-    path: '',
-    component: Layout,
-    redirect: '/index',
-    children: [
-      {
-        path: '/index',
-        component: () => import('@/views/index.vue'),
-        name: 'Index',
-        meta: { title: '首页', icon: 'dashboard', affix: true }
-      }
-    ]
-  },
-  {
-    path: '/user',
-    component: Layout,
-    hidden: true,
-    redirect: 'noredirect',
-    children: [
-      {
-        path: 'profile',
-        component: () => import('@/views/system/user/profile/index.vue'),
-        name: 'Profile',
-        meta: { title: '个人中心', icon: 'user' }
-      }
-    ]
-  }
+	{
+		path: '/redirect',
+		component: Layout,
+		hidden: true,
+		children: [
+			{
+				path: '/redirect/:path(.*)',
+				component: () => import('@/views/redirect/index.vue')
+			}
+		]
+	},
+	{
+		path: '/social-callback',
+		hidden: true,
+		component: () => import('@/layout/components/SocialCallback/index.vue')
+	},
+	{
+		path: '/login',
+		component: () => import('@/views/login.vue'),
+		hidden: true
+	},
+	{
+		path: '/register',
+		component: () => import('@/views/register.vue'),
+		hidden: true
+	},
+	{
+		path: '/:pathMatch(.*)*',
+		component: () => import('@/views/error/404.vue'),
+		hidden: true
+	},
+	{
+		path: '/401',
+		component: () => import('@/views/error/401.vue'),
+		hidden: true
+	},
+	{
+		path: '',
+		component: Layout,
+		redirect: '/index',
+		children: [
+			{
+				path: '/index',
+				component: () => import('@/views/index.vue'),
+				name: 'Index',
+				meta: {title: '首页', icon: 'dashboard', affix: true}
+			}
+		]
+	},
+	{
+		path: '/user',
+		component: Layout,
+		hidden: true,
+		redirect: 'noredirect',
+		children: [
+			{
+				path: 'profile',
+				component: () => import('@/views/system/user/profile/index.vue'),
+				name: 'Profile',
+				meta: {title: '个人中心', icon: 'user'}
+			}
+		]
+	}
 ];
 
 // 动态路由，基于用户权限动态去加载
@@ -98,15 +98,15 @@ export const dynamicRoutes: RouteRecordRaw[] = [];
  * 创建路由
  */
 const router = createRouter({
-  history: createWebHistory(import.meta.env.VITE_APP_CONTEXT_PATH),
-  routes: constantRoutes,
-  // 刷新时，滚动条位置还原
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition) {
-      return savedPosition;
-    }
-    return { top: 0 };
-  }
+	history: createWebHistory(import.meta.env.VITE_APP_CONTEXT_PATH),
+	routes: constantRoutes,
+	// 刷新时，滚动条位置还原
+	scrollBehavior(to, from, savedPosition) {
+		if (savedPosition) {
+			return savedPosition;
+		}
+		return {top: 0};
+	}
 });
 
 export default router;
