@@ -17,8 +17,7 @@ namespace sevencat.ruoyi.demo.controller;
 [ApiController]
 [Route("/api/demo/tree")]
 public class TestTreeController(
-	TestTreeService testTreeService,
-	IHttpContextAccessor httpCtxAccessor)
+	TestTreeService testTreeService)
 {
 	/// <summary>
 	/// 测试树表导出使用的 sheet 名
@@ -50,7 +49,7 @@ public class TestTreeController(
 	public async Task Export([FromQuery] TestTreeBo bo)
 	{
 		var list = await testTreeService.QueryListAsync(bo);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

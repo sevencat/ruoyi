@@ -1,3 +1,4 @@
+using Autofac.Util;
 using MiniExcelLibs;
 using Microsoft.AspNetCore.Http;
 
@@ -8,6 +9,8 @@ namespace sevencat.ruoyi.common.excel;
 /// </summary>
 public static class ExcelResponseWriter
 {
+	private static readonly Lazy<IHttpContextAccessor> httpCtxAccessor = IocFactory.CreateLazy<IHttpContextAccessor>();
+
 	/// <summary>
 	/// xlsx 内容类型
 	/// </summary>
@@ -33,5 +36,13 @@ public static class ExcelResponseWriter
 		response.ContentType = ContentType;
 		response.Headers.ContentDisposition = $"attachment;filename*=utf-8''{Uri.EscapeDataString(fileName)}";
 		await stream.CopyToAsync(response.Body);
+	}
+
+	public static async Task WriteExcelToHttpAsync<T>(this IEnumerable<T> rows, string sheetName)
+	{
+		var ctx = httpCtxAccessor.Value.HttpContext;
+		if (ctx == null)
+			throw new Exception("不在http请求内");
+		await WriteAsync(ctx.Response, rows, sheetName);
 	}
 }

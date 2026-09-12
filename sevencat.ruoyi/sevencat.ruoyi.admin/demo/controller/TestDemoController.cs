@@ -20,8 +20,7 @@ namespace sevencat.ruoyi.demo.controller;
 [ApiController]
 [Route("/api/demo/demo")]
 public class TestDemoController(
-	TestDemoService testDemoService,
-	IHttpContextAccessor httpCtxAccessor)
+	TestDemoService testDemoService)
 {
 	/// <summary>
 	/// 测试单表导出使用的 sheet 名
@@ -97,7 +96,7 @@ public class TestDemoController(
 	public async Task Export([FromQuery] TestDemoBo bo)
 	{
 		var list = await testDemoService.QueryListAsync(bo);
-		await ExcelResponseWriter.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>
