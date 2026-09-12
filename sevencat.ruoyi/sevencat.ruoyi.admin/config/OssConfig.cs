@@ -9,23 +9,29 @@ using sevencat.ruoyi.config.properties;
 
 namespace sevencat.ruoyi.config;
 
-//TODO:如果需要对接到真实的minio,请修改这里
+//TODO:如果需要对接到真实的minio,把下面返回的 LocalOssClient 换成 MinioOssClient（两个实现都已注册为组件）
+//      [Bean] public IOssClient CreateOssClient(MinioOssClient mc) => mc;
 [AutoConfiguration]
 public class OssConfig
 {
 	[Bean]
-	public IOssClient CreateOssClient(LocalOssClient oc)
+	public IOssClient CreateOssClient(MyOssConfig miconfig)
 	{
-		return oc;
+		if (miconfig.OssType == 1)
+		{
+			return new LocalOssClient(miconfig);
+		}
+		else
+		{
+			var minioc = CreateMinio(miconfig);
+			return new MinioOssClient(minioc, miconfig);
+		}
 	}
 
-	private HttpClient CreateMinioHc(MyMinioConfig miconfig)
+	private HttpClient CreateMinioHc(MyOssConfig miconfig)
 	{
 		if (miconfig.RealIp.IsNullOrWhiteSpace())
-			return new HttpClient()
-			{
-				BaseAddress = new Uri(miconfig.Url),
-			};
+			return new HttpClient();
 		var socketsHandler = new SocketsHttpHandler
 		{
 			ConnectCallback = async (context, cancellationToken) =>
@@ -39,7 +45,7 @@ public class OssConfig
 		return new HttpClient(socketsHandler);
 	}
 
-	public IMinioClient CreateMinio(MyMinioConfig miconfig)
+	public IMinioClient CreateMinio(MyOssConfig miconfig)
 	{
 		var customHttpClient = CreateMinioHc(miconfig);
 		var minio = new MinioClient()

@@ -28,6 +28,7 @@ import type { UserProfileForm } from '@/api/system/user/types';
 import { updateUserProfile } from '@/api/system/user';
 import modal from '@/plugins/modal';
 import tab from '@/plugins/tab';
+import { useUserStore } from '@/store/modules/user';
 import { useDict } from '@/utils/dict';
 import { propTypes } from '@/utils/propTypes';
 
@@ -35,6 +36,7 @@ const { sys_user_gender } = toRefs<any>(useDict('sys_user_gender'));
 const props = defineProps({
 	user: propTypes.any.isRequired
 });
+const userStore = useUserStore();
 const userForm = computed(() => props.user);
 const userRef = ref<ElFormInstance>();
 const rule: ElFormRules = {
@@ -73,6 +75,8 @@ const submit = () => {
 				gender: props.user.gender
 			};
 			await updateUserProfile(profile);
+			// 同步 pinia：顶栏昵称等展示依赖 store，不回写会出现"保存成功但界面不变"的现象
+			userStore.nickname = profile.nickName;
 			modal.msgSuccess('修改成功');
 		}
 	});

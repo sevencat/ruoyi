@@ -1,6 +1,5 @@
 ﻿using Autofac.Annotation;
 using Microsoft.AspNetCore.Mvc;
-using sevencat.common.entity;
 
 namespace sevencat.ruoyi.web.controller;
 
@@ -21,44 +20,9 @@ namespace sevencat.ruoyi.web.controller;
 [Route("/api/minio")]
 public class MinioMockController : ControllerBase
 {
-	[Value("miniodrootdir")]
+	[Value("oss:root")]
 	private string LocalStorageRoot;
 
-	/// <summary>
-	/// 模拟 PutObject（上传文件 / 写入对象）
-	/// </summary>
-	/// <param name="bucket">桶名</param>
-	/// <param name="key">对象键，可含 / 表示多级目录</param>
-	/// <returns>操作结果</returns>
-	[HttpPut("{bucket}/{**key}")]
-	public async Task<IActionResult> PutObject([FromRoute] string bucket, [FromRoute] string key)
-	{
-		if (!TryResolveObjectPath(bucket, key, out var filePath))
-		{
-			return BadRequest(CommonResult.Fail("桶名或对象键不合法"));
-		}
-
-		// 自动创建物理“桶”和子目录
-		Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-
-		// 直接将 ASP.NET Core 的 HTTP 请求体（二进制流）写入本地文件系统
-		await using (var fileStream = System.IO.File.Create(filePath))
-		{
-			await Request.Body.CopyToAsync(fileStream);
-		}
-
-
-		/// 2. 生成符合 S3 规范的 ETag（必须带双引号）
-		var mockETag = $"\"{Guid.NewGuid():N}\"";
-
-		// 关键：必须塞进这两个 Header
-		Response.Headers.Append("ETag", mockETag);
-		Response.Headers.Append("Server", "MinIO");
-
-		// 3. 终极修正：返回 NoContent() (HTTP 204) 或者返回一个没有任何 Body 的 Ok() (HTTP 200)
-		// 绝大多数 S3 协议规范在 PutObject 成功后会返回 200 OK，但 Body 的 Content-Length 必须为 0
-		return Ok();
-	}
 
 	/// <summary>
 	/// 模拟 GetObject（下载文件 / 读取对象）
@@ -78,39 +42,6 @@ public class MinioMockController : ControllerBase
 		return PhysicalFile(filePath, "application/octet-stream");
 	}
 
-	/// <summary>
-	/// 模拟 DeleteObject（删除对象）
-	/// </summary>
-	/// <param name="bucket">桶名</param>
-	/// <param name="key">对象键</param>
-	/// <returns>操作结果（对象不存在也返回 204，与 S3 语义一致）</returns>
-	[HttpDelete("{bucket}/{**key}")]
-	public IActionResult DeleteObject([FromRoute] string bucket, [FromRoute] string key)
-	{
-		if (TryResolveObjectPath(bucket, key, out var filePath) && System.IO.File.Exists(filePath))
-		{
-			System.IO.File.Delete(filePath);
-		}
-
-		return NoContent();
-	}
-
-	/// <summary>
-	/// 模拟 CreateBucket（创建桶，其实就是建文件夹）
-	/// </summary>
-	/// <param name="bucket">桶名</param>
-	/// <returns>操作结果</returns>
-	[HttpPut("{bucket}")]
-	public IActionResult CreateBucket([FromRoute] string bucket)
-	{
-		if (!TryResolveBucketPath(bucket, out var bucketPath))
-		{
-			return BadRequest(CommonResult.Fail("桶名不合法"));
-		}
-
-		Directory.CreateDirectory(bucketPath);
-		return Ok();
-	}
 
 	/// <summary>
 	/// 解析本地存储根目录

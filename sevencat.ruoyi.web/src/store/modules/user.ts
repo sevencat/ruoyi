@@ -72,8 +72,9 @@ export const useUserStore = defineStore('user', () => {
 		removeToken();
 	};
 
-	const setAvatar = (value: string) => {
-		avatar.value = value;
+	const setAvatar = (value?: string) => {
+		// 服务端未设置头像时回退默认头像，避免把 undefined 写进 store 导致图片加载失败
+		avatar.value = value || defAva;
 	};
 
 	return {

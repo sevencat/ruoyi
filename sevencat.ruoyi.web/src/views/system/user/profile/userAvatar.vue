@@ -85,7 +85,6 @@ interface Options {
 	fileName: string;
 	previews: any; // 预览数据
 	outputType: string;
-	visible: boolean;
 }
 
 const userStore = useUserStore();
@@ -104,9 +103,16 @@ const options = reactive<Options>({
 	fixedBox: true,
 	outputType: 'png',
 	fileName: '',
-	previews: {},
-	visible: false
+	previews: {}
 });
+
+// 头像以 store 为准，store 变更时同步裁剪组件内的图片地址
+watch(
+	() => userStore.avatar,
+	val => {
+		options.img = val;
+	}
+);
 
 /** 编辑头像 */
 const editCropper = () => {
@@ -151,11 +157,13 @@ const uploadImg = async () => {
 		formData.append('file', data, options.fileName || 'avatar.png');
 		const res = await uploadOss(formData);
 		await updateUserProfile({ avatar: res.data.ossId });
-		open.value = false;
+		// 先同步 pinia 再关弹窗：closeDialog 会以 store 的 avatar 回写 options.img，
+		// 若顺序颠倒，弹窗关闭动画结束时会用旧头像覆盖刚上传的新头像
 		options.img = res.data.url;
-		userStore.setAvatar(options.img);
-		modal.msgSuccess('修改成功');
+		userStore.setAvatar(res.data.url);
 		visible.value = false;
+		open.value = false;
+		modal.msgSuccess('修改成功');
 	});
 };
 /** 实时预览 */
@@ -165,7 +173,7 @@ const realTime = (data: any) => {
 /** 关闭窗口 */
 const closeDialog = () => {
 	options.img = userStore.avatar;
-	options.visible = false;
+	visible.value = false;
 };
 </script>
 

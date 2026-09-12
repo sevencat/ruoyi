@@ -97,12 +97,14 @@ import { getOnline } from '@/api/monitor/online';
 import { getAuthList } from '@/api/system/social/auth';
 import { getUserProfile } from '@/api/system/user';
 import { UserVO } from '@/api/system/user/types';
+import { useUserStore } from '@/store/modules/user';
 import OnlineDevice from './onlineDevice.vue';
 import ResetPwd from './resetPwd.vue';
 import ThirdParty from './thirdParty.vue';
 import UserAvatar from './userAvatar.vue';
 import UserInfo from './userInfo.vue';
 
+const userStore = useUserStore();
 const activeTab = ref('userinfo');
 
 interface State {
@@ -129,6 +131,8 @@ const getUser = async () => {
 	userForm.value = { ...res.data.user };
 	state.value.roleGroup = res.data.roleGroup;
 	state.value.postGroup = res.data.postGroup;
+	// 同步头像到 pinia：导航栏与头像裁剪弹窗都读 store，不回写会一直停留在登录时的旧头像
+	userStore.setAvatar(res.data.user?.avatarUrl);
 };
 
 const getAuths = async () => {

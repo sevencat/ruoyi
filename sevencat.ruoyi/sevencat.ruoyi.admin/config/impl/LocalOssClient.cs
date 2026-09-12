@@ -1,7 +1,7 @@
 using Autofac.Annotation;
-using Microsoft.Extensions.Configuration;
 using sevencat.common;
 using sevencat.ruoyi.common.oss;
+using sevencat.ruoyi.config.properties;
 
 namespace sevencat.ruoyi.config.impl;
 
@@ -11,28 +11,31 @@ namespace sevencat.ruoyi.config.impl;
 /// <remarks>
 /// 目录约定与 <c>MinioMockController</c> 保持一致：桶 = 存储根目录下的一级子目录，对象 = 文件，
 /// 区别是本实现直接读写文件系统（不走 HTTP / S3 协议），适合单机部署或本地联调。
-/// 存储根目录取配置 <c>minio:root</c>，未配置时为 <c>{程序目录}/minio-data</c>。
+/// 存储根目录取 <see cref="MyOssConfig.EffectiveRoot"/>（配置 <c>minio:root</c>，未配置时为 <c>{程序目录}/minio-data</c>）。
 /// </remarks>
 [Component(typeof(LocalOssClient))]
-public class LocalOssClient : IOssClient
+public class LocalOssClient(MyOssConfig config) : IOssClient
 {
-	[Value("miniodrootdir")]
-	private string _root;
-
-
-	/// <summary>
-	/// 构造函数
-	/// </summary>
-	/// <param name="config">应用配置，读取 minio:root</param>
-	public LocalOssClient()
-	{
-	}
+	/// <inheritdoc />
+	public string BucketName => config.EffectiveBucket;
 
 	/// <inheritdoc />
-	public async Task PutObjectAsync(string bucket, string objectName, Stream data, long size, string contentType,
+	/// <remarks>本实现是 MinIO 的替身（目录约定、访问地址都与 MinIO 一致），服务商标识仍按 minio 记账</remarks>
+	public string Service => "minio";
+
+	/// <inheritdoc />
+	public string Url => config.Url;
+
+	/// <summary>
+	/// 本地存储根目录绝对路径
+	/// </summary>
+	private string Root => config.EffectiveRoot;
+
+	/// <inheritdoc />
+	public async Task PutObjectAsync(string objectName, Stream data, long size, string contentType,
 		CancellationToken cancellationToken = default)
 	{
-		var filePath = ResolveObjectPath(bucket, objectName);
+		var filePath = ResolveObjectPath(objectName);
 		// 桶目录（以及对象键里的伪目录）不存在时自动创建
 		Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
@@ -42,15 +45,15 @@ public class LocalOssClient : IOssClient
 	}
 
 	/// <inheritdoc />
-	public Task GetObjectAsync(string bucket, string objectName, Action<Stream> callback,
+	public Task GetObjectAsync(string objectName, Action<Stream> callback,
 		CancellationToken cancellationToken = default)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		var filePath = ResolveObjectPath(bucket, objectName);
+		var filePath = ResolveObjectPath(objectName);
 		if (!File.Exists(filePath))
 		{
-			return Task.FromException(new FileNotFoundException($"对象不存在：{bucket}/{objectName}", filePath));
+			return Task.FromException(new FileNotFoundException($"对象不存在：{BucketName}/{objectName}", filePath));
 		}
 
 		// 与 MinIO 的回调语义一致：回调执行期间流可读，方法返回后流即关闭
@@ -61,11 +64,11 @@ public class LocalOssClient : IOssClient
 	}
 
 	/// <inheritdoc />
-	public Task RemoveObjectAsync(string bucket, string objectName, CancellationToken cancellationToken = default)
+	public Task RemoveObjectAsync(string objectName, CancellationToken cancellationToken = default)
 	{
 		cancellationToken.ThrowIfCancellationRequested();
 
-		var filePath = ResolveObjectPath(bucket, objectName);
+		var filePath = ResolveObjectPath(objectName);
 		// 与 S3 语义一致：对象不存在也视为删除成功
 		if (File.Exists(filePath))
 		{
@@ -76,14 +79,14 @@ public class LocalOssClient : IOssClient
 	}
 
 	/// <summary>
-	/// 校验桶名/对象键并解析为物理文件绝对路径
+	/// 校验桶名与对象键并解析为物理文件绝对路径（桶取 <see cref="BucketName"/>）
 	/// </summary>
-	/// <param name="bucket">桶名</param>
 	/// <param name="objectName">对象键，可含 / 表示多级目录</param>
 	/// <returns>对象文件绝对路径</returns>
 	/// <exception cref="ArgumentException">桶名或对象键不合法（含越权路径）时抛出</exception>
-	private string ResolveObjectPath(string bucket, string objectName)
+	private string ResolveObjectPath(string objectName)
 	{
+		var bucket = BucketName;
 		if (bucket.IsNullOrWhiteSpace() || bucket.Contains("..")
 		                                || bucket.Contains('/') || bucket.Contains('\\'))
 		{
@@ -95,7 +98,7 @@ public class LocalOssClient : IOssClient
 			throw new ArgumentException("对象键不能为空", nameof(objectName));
 		}
 
-		var bucketPath = Path.GetFullPath(Path.Combine(_root, bucket));
+		var bucketPath = Path.GetFullPath(Path.Combine(Root, bucket));
 		string fullPath;
 		try
 		{

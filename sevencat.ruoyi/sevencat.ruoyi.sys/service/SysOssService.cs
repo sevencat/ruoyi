@@ -22,40 +22,19 @@ namespace sevencat.ruoyi.sys.service;
 /// <remarks>
 /// 与 Java 实现的差异：
 /// <list type="number">
-/// <item>不再依赖 <c>sys_oss_config</c> 与 <c>OssFactory</c>，直接使用容器中已注入的 <see cref="IMinioClient"/>；</item>
-/// <item>桶名取配置 <c>minio:bucket</c>（缺省 <c>ruoyi</c>），对外访问地址前缀取配置 <c>minio:url</c>；</item>
+/// <item>不再依赖 <c>sys_oss_config</c> 与 <c>OssFactory</c>，直接使用容器中已注入的 <see cref="IOssClient"/>；</item>
+/// <item>桶名、服务商标识、对外访问地址前缀都由 <see cref="IOssClient"/> 提供
+/// （MinIO 实现取配置 <c>minio:bucket</c> 与 <c>minio:url</c>），本层只关心对象键；</item>
 /// <item>Java 的 <c>matchingUrl</c> 用于给私有桶生成带签名的临时地址，这里统一保存/返回直连地址，因此无需重写 URL。</item>
 /// </list>
 /// </remarks>
 [Component]
-public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient)
+public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient ossClient)
 {
-	/// <summary>
-	/// 服务商标识，写入 sys_oss.service
-	/// </summary>
-	private const string ServiceMinio = "minio";
-
-	/// <summary>
-	/// 缺省桶名
-	/// </summary>
-	private const string DefaultBucket = "ruoyi";
-
 	/// <summary>
 	/// JSON 序列化配置（camelCase，与 Java 序列化 ext1 的字段风格保持一致）
 	/// </summary>
 	private static readonly JsonSerializerOptions JsonOptions = JsonSerializerOptions.Web;
-
-	/// <summary>
-	/// 桶名（appsettings.json -> minio:bucket）
-	/// </summary>
-	[Value("minio:bucket")]
-	public string Bucket { get; set; }
-
-	/// <summary>
-	/// 对外访问地址前缀（appsettings.json -> minio:url，可带路径前缀，如 127.0.0.1:7050/api/minio）
-	/// </summary>
-	[Value("minio:url")]
-	public string MinioUrl { get; set; }
 
 	/// <summary>
 	/// 分页查询 OSS 列表（对应 Java 的 <c>queryPageList</c>）
@@ -144,7 +123,7 @@ public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient
 
 		await using (var stream = file.OpenReadStream())
 		{
-			await minioClient.PutObjectAsync(BucketName, fileName, stream, file.Length, contentType);
+			await ossClient.PutObjectAsync(fileName, stream, file.Length, contentType);
 		}
 
 		var ext = ossExt ?? new SysOssExt();
@@ -158,7 +137,7 @@ public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient
 			FileSuffix = suffix,
 			Url = BuildUrl(fileName),
 			Ext1 = JsonSerializer.Serialize(ext, JsonOptions),
-			Service = ServiceMinio,
+			Service = ossClient.Service,
 		};
 		await fsql.Insert(oss).ExecuteAffrowsAsync();
 		return oss.MapTo<SysOssVo>(mapper);
@@ -181,7 +160,7 @@ public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient
 		}
 
 		using var buffer = new MemoryStream();
-		await minioClient.GetObjectAsync(BucketName, oss.FileName, (stream => stream.CopyTo(buffer)));
+		await ossClient.GetObjectAsync(oss.FileName, stream => stream.CopyTo(buffer));
 
 		return new SysOssDownloadFile(buffer.ToArray(), ResolveContentType(oss.Ext1),
 			oss.OriginalName.IsNotNullOrWhiteSpace() ? oss.OriginalName : oss.FileName);
@@ -205,7 +184,7 @@ public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient
 			.ToListAsync();
 		foreach (var oss in list)
 		{
-			await minioClient.RemoveObjectAsync(BucketName, oss.FileName);
+			await ossClient.RemoveObjectAsync(oss.FileName);
 		}
 
 		return await fsql.Delete<TSysOss>()
@@ -279,16 +258,16 @@ public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient
 	}
 
 	/// <summary>
-	/// 拼接对象的对外访问地址（<c>{minio:url}/{桶名}/{对象键}</c>）
+	/// 拼接对象的对外访问地址（<c>{客户端的访问前缀}/{桶名}/{对象键}</c>）
 	/// </summary>
 	/// <param name="fileName">对象键</param>
 	/// <returns>访问地址</returns>
 	private string BuildUrl(string fileName)
 	{
-		var baseUrl = MinioUrl;
+		var baseUrl = ossClient.Url;
 		if (baseUrl.IsNullOrWhiteSpace())
 		{
-			return $"/{BucketName}/{fileName}";
+			return $"/{ossClient.BucketName}/{fileName}";
 		}
 
 		baseUrl = baseUrl.TrimEnd('/');
@@ -297,7 +276,7 @@ public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient
 			baseUrl = $"http://{baseUrl}";
 		}
 
-		return $"{baseUrl}/{BucketName}/{fileName}";
+		return $"{baseUrl}/{ossClient.BucketName}/{fileName}";
 	}
 
 	/// <summary>
@@ -325,11 +304,6 @@ public class SysOssService(IFreeSql fsql, IMapper mapper, IOssClient minioClient
 
 		return "application/octet-stream";
 	}
-
-	/// <summary>
-	/// 桶名，未配置时使用缺省值
-	/// </summary>
-	private string BucketName => Bucket.IsNotNullOrWhiteSpace() ? Bucket : DefaultBucket;
 }
 
 /// <summary>
