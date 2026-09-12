@@ -9,11 +9,10 @@ using Scalar.AspNetCore;
 using sevencat.ruoyi.config.impl;
 using sevencat.ruoyi.sys.log;
 using sevencat.ruoyi.web;
-using sevencat.ruoyi.web.proxy;
 
 namespace sevencat.ruoyi;
 
-public class AppModule(IConfiguration config) : Module
+public class AppModule(IWebHostEnvironment env) : Module
 {
 	private static readonly NLog.Logger Log = NLog.LogManager.GetCurrentClassLogger();
 
@@ -27,10 +26,26 @@ public class AppModule(IConfiguration config) : Module
 
 	protected void ConfigServices(ServiceCollection Services)
 	{
-		Services.AddHttpContextAccessor();
+		//重要:如果不有这两行，AddControllers会失去效果!!!
+		Services.AddSingleton<IWebHostEnvironment>(env);
+		Services.AddSingleton<IHostEnvironment>(env);
+		var mvcBuilder = Services.AddControllers();
+		mvcBuilder.AddControllersAsServices().AddJsonOptions((opts) =>
+		{
+			//这个是缺省的web配置
+			opts.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+			opts.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+			opts.JsonSerializerOptions.NumberHandling = JsonNumberHandling.AllowReadingFromString;
 
-		// /api/** 兜底转发
-		Services.AddApiProxy(config);
+			//这个主要是雪花id是long,造成的
+			opts.JsonSerializerOptions.Converters.Add(new LongToStringConverter());
+			// 时间统一格式化为 "yyyy-MM-dd HH:mm:ss"5
+			opts.JsonSerializerOptions.Converters.Add(new sevencat.common.json.JsonConverterUtil.DateTimeConverter());
+			opts.JsonSerializerOptions.Converters.Add(
+				new sevencat.common.json.JsonConverterUtil.DateTimeNullConverter());
+		});
+
+		Services.AddHttpContextAccessor();
 
 
 		// builder.Services.AddSignalR().AddHubOptions<MsgHub>(options =>
@@ -81,15 +96,12 @@ public class AppModule(IConfiguration config) : Module
 
 		app.UseCors("AllowAll");
 		app.MapControllers();
-		// 未被本项目处理的 /api/** 请求转发到目标地址
-		app.MapApiProxy(config);
+
 		app.MapHangfireDashboard("/hf", new DashboardOptions
 		{
 			Authorization = [new MyDashboardFilter()]
 		});
 		Log.Info("hangfire后缀为/hf");
-
-		app.UseWebSockets();
 		app.MapOpenApi();
 		app.MapScalarApiReference();
 		app.MapGet("/", () => Results.Redirect("/index.html"));
