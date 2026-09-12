@@ -5,18 +5,25 @@ using sevencat.common.entity;
 namespace sevencat.ruoyi.web.controller;
 
 /// <summary>
-/// 本地对象存储（用本地文件系统模拟 MinIO 的 S3 接口）
+/// 本地对象存储（用本地文件系统模拟 MinIO 的 S3 接口） 如果有正式的，就把这个去掉!!!
 /// </summary>
 /// <remarks>
 /// 桶 = 存储根目录下的一级子目录，对象 = 文件；请求体直接落盘，不做签名校验，
 /// 供前端 / SDK 在无 MinIO 服务时联调使用，请勿直接暴露到公网。
+/// 为什么对象相关动作同时挂两份路由（~/{bucket}/{**key} 与 /api/minio/{bucket}/{**key}）：
+/// Minio 的 .NET SDK 在 WithEndpoint 时只保留 host:port（MinioClientExtensions.SetBaseURL 只取
+/// Host/Port，endpoint 里的路径会被丢弃），它发出的请求固定是 /{bucket}/{object}，即**根路径**；
+/// 而浏览器直连用的地址来自配置 minio:url（本例 http://127.0.0.1:7050/api/minio）。
+/// 只挂 /api/minio 时，SDK 的上传/下载请求会因根路径没有路由而拿到 404（无响应体），
+/// 表现为 Minio SDK 抛出 MinIO API responded with message={对象键}。
 /// </remarks>
 [ApiController]
 [Route("/api/minio")]
-public class MinioController : ControllerBase
+public class MinioMockController : ControllerBase
 {
 	[Value("miniodrootdir")]
 	private string LocalStorageRoot;
+
 	/// <summary>
 	/// 模拟 PutObject（上传文件 / 写入对象）
 	/// </summary>
@@ -40,8 +47,16 @@ public class MinioController : ControllerBase
 			await Request.Body.CopyToAsync(fileStream);
 		}
 
-		// 返回标准 S3 成功响应头（ETag 是必须的，很多 SDK 会校验）
-		Response.Headers.ETag = $"\"{Guid.NewGuid()}\"";
+
+		/// 2. 生成符合 S3 规范的 ETag（必须带双引号）
+		var mockETag = $"\"{Guid.NewGuid():N}\"";
+
+		// 关键：必须塞进这两个 Header
+		Response.Headers.Append("ETag", mockETag);
+		Response.Headers.Append("Server", "MinIO");
+
+		// 3. 终极修正：返回 NoContent() (HTTP 204) 或者返回一个没有任何 Body 的 Ok() (HTTP 200)
+		// 绝大多数 S3 协议规范在 PutObject 成功后会返回 200 OK，但 Body 的 Content-Length 必须为 0
 		return Ok();
 	}
 

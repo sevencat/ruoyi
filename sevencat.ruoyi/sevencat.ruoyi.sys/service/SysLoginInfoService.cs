@@ -4,6 +4,7 @@ using MapsterMapper;
 using Microsoft.AspNetCore.Http;
 using sevencat.common;
 using sevencat.ruoyi.common.constant;
+using sevencat.ruoyi.common.db;
 using sevencat.ruoyi.common.db.util;
 using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.common.util;
@@ -96,6 +97,7 @@ public class SysLoginInfoService(IFreeSql fsql, IMapper mapper, IHttpContextAcce
 	{
 		var info = new TSysLoginInfo
 		{
+			InfoId = IdGenUtil.NextId(),
 			UserName = loginUser?.Username ?? userName,
 			ClientKey = loginUser?.ClientKey ?? clientId,
 			// Java 端取自 sys_client.device_type，SysClient 尚未实现前固定为 pc
