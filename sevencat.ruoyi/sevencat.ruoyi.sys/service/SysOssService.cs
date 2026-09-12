@@ -3,8 +3,6 @@ using Autofac.Annotation;
 using FreeSql;
 using MapsterMapper;
 using Microsoft.AspNetCore.Http;
-using Minio;
-using Minio.DataModel.Args;
 using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.db.util;

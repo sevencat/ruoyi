@@ -15,7 +15,6 @@
       <PackageReference Include="FreeSql" Version="3.5.311" />
       <PackageReference Include="Mapster" Version="10.0.12" />
       <PackageReference Include="MiniExcel" Version="1.46.0" />
-      <PackageReference Include="Minio" Version="6.0.5" />
       <PackageReference Include="NLog" Version="6.2.0" />
       <PackageReference Include="Sevencat.Autofac.Annotation" Version="1.0.7" />
       <PackageReference Include="sevencat.common" Version="1.0.9" />

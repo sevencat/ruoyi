@@ -9,6 +9,7 @@ using sevencat.ruoyi.config.properties;
 
 namespace sevencat.ruoyi.config;
 
+//TODO:如果需要对接到真实的minio,请修改这里
 [AutoConfiguration]
 public class OssConfig
 {
