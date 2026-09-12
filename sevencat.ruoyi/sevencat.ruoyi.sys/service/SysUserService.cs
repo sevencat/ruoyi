@@ -115,7 +115,26 @@ public class SysUserService(
 
 		var vo = user.MapTo<SysUserVo>(mapper);
 		vo.Roles = await roleService.SelectRolesByUserId(userId);
+		vo.AvatarUrl = await SelectAvatarUrl(vo.Avatar);
 		return vo;
+	}
+
+	/// <summary>
+	/// 按头像 OSS 主键回填头像访问地址（对应 Java 的 <c>@Translation(type = TransConstant.OSS_ID_TO_URL, mapper = "avatar")</c>）
+	/// </summary>
+	/// <param name="avatarOssId">头像对应的 oss 主键，为空时表示未设置头像</param>
+	/// <returns>头像访问地址；未设置或对象已删除时返回 null</returns>
+	private async Task<string> SelectAvatarUrl(long? avatarOssId)
+	{
+		if (!avatarOssId.HasValue)
+		{
+			return null;
+		}
+
+		var oss = await fsql.Select<TSysOss>()
+			.Where(x => x.OssId == avatarOssId.Value)
+			.FirstAsync();
+		return oss?.Url;
 	}
 
 	/// <summary>
