@@ -24,7 +24,7 @@ namespace sevencat.ruoyi.sys.service;
 /// 本项目暂无调用方，未实现。
 /// </remarks>
 [Component]
-public class SysDeptService(IFreeSql fsql, IMapper mapper, LoginService loginService)
+public partial class SysDeptService(IFreeSql fsql, IMapper mapper, LoginService loginService)
 {
 	/// <summary>
 	/// 删除标志（0代表存在 1代表删除），对应 Java 实体字段上的 <c>@TableLogic</c> 逻辑删除
@@ -293,10 +293,12 @@ public class SysDeptService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 	/// <param name="bo">部门信息</param>
 	/// <returns>影响行数</returns>
 	// Java 原注解 @Caching(evict = { @CacheEvict(SYS_DEPT, ...), @CacheEvict(SYS_DEPT_AND_CHILD, ...) })：C# 端无部门缓存，未实现
-	// Java 原注解 @Transactional(rollbackFor = Exception.class)：C# 端未引入事务包装，多次写库未置于同一事务
 	public async Task<int> UpdateDept(SysDeptBo bo)
 	{
 		var dept = bo.MapTo<TSysDept>(mapper);
+
+		// FreeSql 的事务挂载在线程上，事务体内不能出现 await，
+		// 因此把「原部门读取 + 新父部门权限校验 + 登录人查询」这几步异步操作放在事务之前
 		var oldDept = await fsql.Select<TSysDept>()
 			.Where(x => x.DeptId == dept.DeptId)
 			.FirstAsync();
@@ -305,44 +307,55 @@ public class SysDeptService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 			throw new ServiceException("部门不存在，无法修改");
 		}
 
-		if (oldDept.ParentId != dept.ParentId)
+		var parentChanged = oldDept.ParentId != dept.ParentId;
+		if (parentChanged)
 		{
 			// 如果是新父部门，则校验是否具有新父部门权限，避免越权
 			await CheckDeptDataScope(dept.ParentId);
-			var newParentDept = await fsql.Select<TSysDept>()
-				.Where(x => x.DeptId == dept.ParentId)
-				.FirstAsync();
-			if (newParentDept != null)
+		}
+
+		var loginUid = await loginService.GetLoginuid();
+
+		// 部门主体更新、子部门祖级串批量更新、上级部门状态更新必须同事务
+		return fsql.UseTransaction(() =>
+		{
+			if (parentChanged)
 			{
-				var newAncestors = $"{newParentDept.Ancestors}{CommonStrUtil.SEPARATOR}{newParentDept.DeptId}";
-				var oldAncestors = oldDept.Ancestors;
-				dept.Ancestors = newAncestors;
-				await UpdateDeptChildren(dept.DeptId, newAncestors, oldAncestors);
+				var newParentDept = fsql.Select<TSysDept>()
+					.Where(x => x.DeptId == dept.ParentId)
+					.First();
+				if (newParentDept != null)
+				{
+					var newAncestors = $"{newParentDept.Ancestors}{CommonStrUtil.SEPARATOR}{newParentDept.DeptId}";
+					var oldAncestors = oldDept.Ancestors;
+					dept.Ancestors = newAncestors;
+					UpdateDeptChildren(dept.DeptId, newAncestors, oldAncestors);
+				}
 			}
-		}
-		else
-		{
-			dept.Ancestors = oldDept.Ancestors;
-		}
+			else
+			{
+				dept.Ancestors = oldDept.Ancestors;
+			}
 
-		dept.UpdateBy ??= await loginService.GetLoginuid();
+			dept.UpdateBy ??= loginUid;
 
-		// SetSourceIgnore 对应 MyBatis-Plus updateById 的「null 不更新」语义
-		var result = await fsql.Update<TSysDept>()
-			.SetSourceIgnore(dept)
-			.Where(a => a.DeptId == dept.DeptId)
-			.ExecuteAffrowsAsync();
+			// SetSourceIgnore 对应 MyBatis-Plus updateById 的「null 不更新」语义
+			var result = fsql.Update<TSysDept>()
+				.SetSourceIgnore(dept)
+				.Where(a => a.DeptId == dept.DeptId)
+				.ExecuteAffrows();
 
-		// 部门状态为启用，且祖级列表不为空、不等于根部门祖级列表（说明存在上级部门）时，
-		// 一并启用该部门的所有上级部门
-		if (SystemConstants.NORMAL.Equals(dept.Status)
-		    && !string.IsNullOrEmpty(dept.Ancestors)
-		    && !SystemConstants.ROOT_DEPT_ANCESTORS.Equals(dept.Ancestors))
-		{
-			await UpdateParentDeptStatusNormal(dept.Ancestors);
-		}
+			// 部门状态为启用，且祖级列表不为空、不等于根部门祖级列表（说明存在上级部门）时，
+			// 一并启用该部门的所有上级部门
+			if (SystemConstants.NORMAL.Equals(dept.Status)
+			    && !string.IsNullOrEmpty(dept.Ancestors)
+			    && !SystemConstants.ROOT_DEPT_ANCESTORS.Equals(dept.Ancestors))
+			{
+				UpdateParentDeptStatusNormal(dept.Ancestors);
+			}
 
-		return result;
+			return result;
+		});
 	}
 
 	/// <summary>
@@ -395,128 +408,6 @@ public class SysDeptService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 		}
 
 		return idToName;
-	}
-
-	/// <summary>
-	/// 构造部门列表查询条件
-	/// </summary>
-	/// <param name="bo">部门筛选条件</param>
-	/// <returns>部门列表查询对象</returns>
-	private ISelect<TSysDept> BuildDeptQuery(SysDeptBo bo)
-	{
-		return fsql.Select<TSysDept>()
-			.Where(x => x.DelFlag == SystemConstants.NORMAL)
-			.WhereIf(bo.DeptId.HasValue, x => x.DeptId == bo.DeptId)
-			.WhereIf(bo.ParentId.HasValue, x => x.ParentId == bo.ParentId)
-			.WhereIf(bo.DeptName.IsNotNullOrWhiteSpace(), x => x.DeptName.Contains(bo.DeptName))
-			.WhereIf(bo.DeptCategory.IsNotNullOrWhiteSpace(), x => x.DeptCategory.Contains(bo.DeptCategory))
-			.WhereIf(bo.Status.IsNotNullOrWhiteSpace(), x => x.Status == bo.Status)
-			// 创建时间区间检索（对应 Java 的 params.beginTime / params.endTime）
-			.WhereTimeRange(bo.Params, x => x.CreateTime)
-			.OrderBy(x => x.Ancestors)
-			.OrderBy(x => x.ParentId)
-			.OrderBy(x => x.OrderNum)
-			.OrderBy(x => x.DeptId);
-	}
-
-	/// <summary>
-	/// 按查询条件取出部门行，含部门树搜索过滤（对应 Java 的 <c>buildQueryWrapper</c> + <c>selectDeptList</c>）
-	/// </summary>
-	/// <param name="bo">部门筛选条件</param>
-	/// <returns>部门行集合</returns>
-	private async Task<List<TSysDept>> QueryDeptRows(SysDeptBo bo)
-	{
-		var depts = await BuildDeptQuery(bo).ToListAsync();
-
-		// 部门树搜索：仅保留指定部门及其所有子部门
-		if (bo.BelongDeptId.HasValue)
-		{
-			var belongId = bo.BelongDeptId.Value;
-			depts = depts
-				.Where(dept => IsDeptOrChild(dept, belongId))
-				.ToList();
-		}
-
-		return depts;
-	}
-
-	/// <summary>
-	/// 修改子元素关系（对应 Java 的 <c>updateDeptChildren</c>）
-	/// </summary>
-	/// <param name="deptId">被修改的部门ID</param>
-	/// <param name="newAncestors">新的父ID集合</param>
-	/// <param name="oldAncestors">旧的父ID集合</param>
-	private async Task UpdateDeptChildren(long deptId, string newAncestors, string oldAncestors)
-	{
-		var children = await fsql.Select<TSysDept>()
-			.Where(x => x.DelFlag == SystemConstants.NORMAL)
-			.ToListAsync();
-
-		// 只更新祖级串，避免把名称为空等字段一并写回（对应 Java 的 updateBatchById 仅设置 deptId + ancestors）
-		var list = children
-			.Where(child => IsInAncestors(child.Ancestors, deptId))
-			.Select(child => new
-			{
-				child.DeptId,
-				Ancestors = CommonStrUtil.ReplaceOnce(child.Ancestors, oldAncestors, newAncestors)
-			})
-			.ToList();
-
-		// Java 批量更新后会逐条 evict SYS_DEPT 缓存，C# 端无部门缓存，只做更新
-		foreach (var dept in list)
-		{
-			await fsql.Update<TSysDept>()
-				.Set(a => a.Ancestors, dept.Ancestors)
-				.Where(a => a.DeptId == dept.DeptId)
-				.ExecuteAffrowsAsync();
-		}
-	}
-
-	/// <summary>
-	/// 修改该部门的父级部门状态（对应 Java 的 <c>updateParentDeptStatusNormal</c>）
-	/// </summary>
-	/// <param name="ancestors">当前部门的祖级列表，如 0,100,101</param>
-	private async Task UpdateParentDeptStatusNormal(string ancestors)
-	{
-		// Java 用 Convert.toLongArray(ancestors) 把祖级串转成 ID 数组
-		var deptIds = ancestors
-			.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-			.Select(item => long.TryParse(item, out var id) ? id : (long?)null)
-			.Where(id => id.HasValue)
-			.Select(id => id.Value)
-			.ToList();
-
-		if (deptIds.Count == 0)
-		{
-			return;
-		}
-
-		await fsql.Update<TSysDept>()
-			.Set(a => a.Status, SystemConstants.NORMAL)
-			.Where(a => deptIds.Contains(a.DeptId))
-			.ExecuteAffrowsAsync();
-	}
-
-	/// <summary>
-	/// 判断部门是否属于指定部门本身或其子孙（对应 Java 的 <c>deptId.equals(...) || find_in_set(deptId, ancestors)</c>）
-	/// </summary>
-	/// <param name="dept">部门行</param>
-	/// <param name="deptId">目标部门ID</param>
-	/// <returns>true 是 false 否</returns>
-	private static bool IsDeptOrChild(TSysDept dept, long deptId)
-	{
-		return dept.DeptId == deptId || IsInAncestors(dept.Ancestors, deptId);
-	}
-
-	/// <summary>
-	/// 判断部门ID是否出现在祖级串中（对应 Java 的 <c>find_in_set(deptId, ancestors)</c>）
-	/// </summary>
-	/// <param name="ancestors">祖级列表，如 0,100,101</param>
-	/// <param name="deptId">目标部门ID</param>
-	/// <returns>true 在祖级串中 false 不在</returns>
-	private static bool IsInAncestors(string ancestors, long deptId)
-	{
-		return $"{ancestors},".Contains($"{deptId},");
 	}
 
 	/// <summary>

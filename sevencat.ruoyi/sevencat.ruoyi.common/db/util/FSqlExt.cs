@@ -2,7 +2,6 @@
 using System.Reflection;
 using FreeSql;
 using sevencat.common;
-using sevencat.common.entity;
 using sevencat.ruoyi.common.entity;
 
 namespace sevencat.ruoyi.common.db.util;
@@ -15,38 +14,66 @@ public static class FSqlExt
 	private static readonly MethodInfo StringContainsMethod =
 		typeof(string).GetMethod(nameof(string.Contains), [typeof(string)]);
 
+	/// <summary>
+	/// 分页查询（同步）
+	/// </summary>
+	/// <typeparam name="T">实体类型</typeparam>
+	/// <typeparam name="TReturn">返回类型</typeparam>
+	/// <param name="source">查询对象</param>
+	/// <param name="parm">分页参数，页码/每页条数为空时取 <see cref="PageQuery2.DEFAULT_PAGE_NUM"/> /
+	/// <see cref="PageQuery2.DEFAULT_PAGE_SIZE"/></param>
+	/// <param name="select">投影表达式</param>
+	/// <returns>分页结果</returns>
 	public static PageResult<TReturn> ToPage<T, TReturn>(this ISelect<T> source, PageQuery2 parm,
 		Expression<Func<T, TReturn>> select)
 	{
-		var page = new PageResult<TReturn>();
-		page.PageSize = parm.PageSize ?? 1;
-		page.PageNum = parm.PageNum ?? 20;
+		var pageNum = parm.PageNum ?? PageQuery2.DEFAULT_PAGE_NUM;
+		var pageSize = parm.PageSize ?? PageQuery2.DEFAULT_PAGE_SIZE;
+
 		if (parm.IsAsc.IsNotNullOrEmpty())
 		{
 			source.OrderByPropertyName(parm.OrderByColumn, !parm.IsAsc.Contains("desc"));
 		}
 
+		var page = new PageResult<TReturn>
+		{
+			PageNum = pageNum,
+			PageSize = pageSize
+		};
 		page.Rows = source
 			.Count(out var total)
-			.Page(parm.PageNum ?? 20, parm.PageSize ?? 1)
+			.Page(pageNum, pageSize)
 			.ToList(select);
 		page.Total = (int)total;
 		return page;
 	}
 
+	/// <summary>
+	/// 分页查询（异步）
+	/// </summary>
+	/// <typeparam name="T">实体类型</typeparam>
+	/// <param name="source">查询对象</param>
+	/// <param name="parm">分页参数，页码/每页条数为空时取 <see cref="PageQuery2.DEFAULT_PAGE_NUM"/> /
+	/// <see cref="PageQuery2.DEFAULT_PAGE_SIZE"/></param>
+	/// <returns>分页结果</returns>
 	public static async Task<PageResult<T>> ToPage<T>(this ISelect<T> source, PageQuery2 parm)
 	{
-		var page = new PageResult<T>();
-		page.PageSize = parm.PageSize ?? 1;
-		page.PageNum = parm.PageNum ?? 20;
+		var pageNum = parm.PageNum ?? PageQuery2.DEFAULT_PAGE_NUM;
+		var pageSize = parm.PageSize ?? PageQuery2.DEFAULT_PAGE_SIZE;
+
 		if (parm.IsAsc.IsNotNullOrEmpty())
 		{
 			source.OrderByPropertyName(parm.OrderByColumn, !parm.IsAsc.Contains("desc"));
 		}
 
+		var page = new PageResult<T>
+		{
+			PageNum = pageNum,
+			PageSize = pageSize
+		};
 		page.Rows = await source
 			.Count(out var total)
-			.Page(parm.PageNum??20, parm.PageSize??1)
+			.Page(pageNum, pageSize)
 			.ToListAsync();
 		page.Total = (int)total;
 		return page;
@@ -210,5 +237,36 @@ public static class FSqlExt
 		}
 
 		return DateTime.TryParse(Convert.ToString(raw), out var parsed) ? parsed : null;
+	}
+
+	/// <summary>
+	/// 在同一个数据库事务中执行写操作（对应 Java 的 <c>@Transactional</c>）
+	/// </summary>
+	/// <param name="fsql">FreeSql 实例</param>
+	/// <param name="action">写操作委托，内部只允许使用同步方法</param>
+	/// <remarks>
+	/// FreeSql 3.5 提供的事务（<c>fsql.Ado.Transaction</c>）是「同线程事务」：事务对象挂载在当前线程上，
+	/// 因此事务体内不允许切换线程，也就不能使用 async/await（否则后续语句会脱离事务）。
+	/// 委托内用同一个 <paramref name="fsql"/> 发起的增删改会自动加入该事务，
+	/// 委托抛出异常时 FreeSql 会回滚事务并把原异常原样抛出（嵌套调用复用同一事务）。
+	/// 如需在事务中使用异步方法，需引入 FreeSql.DbContext 的工作单元（UnitOfWork）。
+	/// </remarks>
+	public static void UseTransaction(this IFreeSql fsql, Action action)
+	{
+		fsql.Ado.Transaction(action);
+	}
+
+	/// <summary>
+	/// 在同一个数据库事务中执行写操作并返回结果（对应 Java 的 <c>@Transactional</c>）
+	/// </summary>
+	/// <typeparam name="TResult">返回值类型</typeparam>
+	/// <param name="fsql">FreeSql 实例</param>
+	/// <param name="action">写操作委托，内部只允许使用同步方法</param>
+	/// <returns>委托的返回值</returns>
+	public static TResult UseTransaction<TResult>(this IFreeSql fsql, Func<TResult> action)
+	{
+		TResult result = default;
+		fsql.Ado.Transaction(() => result = action());
+		return result;
 	}
 }

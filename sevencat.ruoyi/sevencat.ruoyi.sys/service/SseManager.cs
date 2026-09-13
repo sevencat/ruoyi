@@ -97,21 +97,21 @@ public class SseManager
 		}
 	}
 
-	public async Task BroadcastAsync(object data, string @event = null)
+	/// <summary>
+	/// 向所有在线用户广播消息
+	/// </summary>
+	/// <param name="data">消息体（序列化为 JSON 后发送）</param>
+	/// <param name="event">事件名</param>
+	/// <remarks>
+	/// 各用户并发发送：逐个 await 时，单个慢连接会把后面的用户全部拖住。
+	/// 单个连接写入失败已在 <see cref="SendToUserAsync"/> 内部吞掉并清理，不会影响其他用户。
+	/// </remarks>
+	public Task BroadcastAsync(object data, string @event = null)
 	{
 		var jstr = data.ToJson(jsonOptions);
-		foreach (var userId in _onlineUsers.Keys)
-		{
-			await SendToUserAsync(userId, jstr, @event);
-		}
-	}
-
-	public async Task BroadcastAsync2(string data, string @event = null)
-	{
-		foreach (var userId in _onlineUsers.Keys)
-		{
-			await SendToUserAsync(userId, data, @event);
-		}
+		// ConcurrentDictionary.Keys 是快照语义，迭代过程中无需担心并发修改
+		var tasks = _onlineUsers.Keys.Select(userId => SendToUserAsync(userId, jstr, @event));
+		return Task.WhenAll(tasks);
 	}
 
 	// 辅助方法：严格按照 SSE 的规范格式写入数据

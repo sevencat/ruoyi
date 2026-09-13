@@ -20,7 +20,7 @@ namespace sevencat.ruoyi.sys.service;
 /// <c>DataPermissionHelper</c> 支撑，C# 端暂无该设施，对应实现已退化为「主键存在性校验」。
 /// </remarks>
 [Component]
-public class SysRoleService(IFreeSql fsql, IMapper mapper, LoginService loginService)
+public partial class SysRoleService(IFreeSql fsql, IMapper mapper, LoginService loginService)
 {
 	/// <summary>
 	/// 删除标志（0代表存在 1代表删除），对应 Java 实体字段上的 <c>@TableLogic</c> 逻辑删除
@@ -290,16 +290,22 @@ public class SysRoleService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 	/// </summary>
 	/// <param name="bo">角色信息（含菜单ID集合）</param>
 	/// <returns>影响行数</returns>
-	// Java 原注解 @Transactional(rollbackFor = Exception.class)：C# 端未引入事务包装，多次写库未置于同一事务
 	public async Task<int> InsertRole(SysRoleBo bo)
 	{
-		var role = bo.MapTo<TSysRole>(mapper);
-		role.CreateBy ??= await loginService.GetLoginuid();
-		await fsql.Insert(role).ExecuteAffrowsAsync();
-		// 回填雪花ID，供 insertRoleMenu / insertRoleDept 使用
-		bo.RoleId = role.RoleId;
+		// 事务体内不能出现 await，先把登录人查出来
+		var loginUid = await loginService.GetLoginuid();
 
-		return await InsertRoleMenu(bo);
+		// 角色主体与「角色-菜单」关联必须同事务
+		return fsql.UseTransaction(() =>
+		{
+			var role = bo.MapTo<TSysRole>(mapper);
+			role.CreateBy ??= loginUid;
+			fsql.Insert(role).ExecuteAffrows();
+			// 回填雪花ID，供 insertRoleMenu / insertRoleDept 使用
+			bo.RoleId = role.RoleId;
+
+			return InsertRoleMenu(bo);
+		});
 	}
 
 	/// <summary>
@@ -325,18 +331,24 @@ public class SysRoleService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 	/// <param name="bo">角色信息（含菜单ID、部门ID集合）</param>
 	/// <returns>影响行数</returns>
 	// Java 原注解 @CacheEvict(cacheNames = CacheNames.SYS_ROLE_CUSTOM, key = "#bo.roleId")：C# 端无角色自定义数据权限缓存，未实现
-	// Java 原注解 @Transactional(rollbackFor = Exception.class)：C# 端未引入事务包装，多次写库未置于同一事务
 	public async Task<int> UpdateRolePermission(SysRoleBo bo)
 	{
-		var role = bo.MapTo<TSysRole>(mapper);
-		role.UpdateBy ??= await loginService.GetLoginuid();
-		await fsql.Update<TSysRole>().SetSourceIgnore(role).Where(a => a.RoleId == role.RoleId).ExecuteAffrowsAsync();
+		// 事务体内不能出现 await，先把登录人查出来
+		var loginUid = await loginService.GetLoginuid();
 
-		await fsql.Delete<TSysRoleMenu>().Where(x => x.RoleId == role.RoleId).ExecuteAffrowsAsync();
-		await InsertRoleMenu(bo);
+		// 角色主体、菜单权限关联、数据权限关联三处写库必须同事务
+		return fsql.UseTransaction(() =>
+		{
+			var role = bo.MapTo<TSysRole>(mapper);
+			role.UpdateBy ??= loginUid;
+			fsql.Update<TSysRole>().SetSourceIgnore(role).Where(a => a.RoleId == role.RoleId).ExecuteAffrows();
 
-		await fsql.Delete<TSysRoleDept>().Where(x => x.RoleId == role.RoleId).ExecuteAffrowsAsync();
-		return await InsertRoleDept(bo);
+			fsql.Delete<TSysRoleMenu>().Where(x => x.RoleId == role.RoleId).ExecuteAffrows();
+			InsertRoleMenu(bo);
+
+			fsql.Delete<TSysRoleDept>().Where(x => x.RoleId == role.RoleId).ExecuteAffrows();
+			return InsertRoleDept(bo);
+		});
 	}
 
 	/// <summary>
@@ -377,7 +389,6 @@ public class SysRoleService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 	/// <param name="roleIds">角色ID列表</param>
 	/// <returns>影响行数</returns>
 	// Java 原注解 @CacheEvict(cacheNames = CacheNames.SYS_ROLE_CUSTOM, allEntries = true)：C# 端无角色自定义数据权限缓存，未实现
-	// Java 原注解 @Transactional(rollbackFor = Exception.class)：C# 端未引入事务包装，多次写库未置于同一事务
 	public async Task<int> DeleteRoleByIds(List<long> roleIds)
 	{
 		await CheckRoleDataScope(roleIds);
@@ -399,14 +410,18 @@ public class SysRoleService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 			// Java 通过 OnlineUserCleanEvent.byRole(role.getRoleId()) 踢出在线用户；C# 端无事件总线，未实现
 		}
 
-		await fsql.Delete<TSysRoleMenu>().Where(x => roleIds.Contains(x.RoleId)).ExecuteAffrowsAsync();
-		await fsql.Delete<TSysRoleDept>().Where(x => roleIds.Contains(x.RoleId)).ExecuteAffrowsAsync();
+		// 关联清理与逻辑删除必须同事务
+		return fsql.UseTransaction(() =>
+		{
+			fsql.Delete<TSysRoleMenu>().Where(x => roleIds.Contains(x.RoleId)).ExecuteAffrows();
+			fsql.Delete<TSysRoleDept>().Where(x => roleIds.Contains(x.RoleId)).ExecuteAffrows();
 
-		// 对应 Java 实体上的 @TableLogic：udpate sys_role set del_flag = '1'
-		return await fsql.Update<TSysRole>()
-			.Set(x => x.DelFlag, DEL_FLAG_DELETED)
-			.Where(x => roleIds.Contains(x.RoleId))
-			.ExecuteAffrowsAsync();
+			// 对应 Java 实体上的 @TableLogic：udpate sys_role set del_flag = '1'
+			return fsql.Update<TSysRole>()
+				.Set(x => x.DelFlag, DEL_FLAG_DELETED)
+				.Where(x => roleIds.Contains(x.RoleId))
+				.ExecuteAffrows();
+		});
 	}
 
 	/// <summary>
@@ -478,68 +493,6 @@ public class SysRoleService(IFreeSql fsql, IMapper mapper, LoginService loginSer
 		if (userIds is { Count: > 0 })
 		{
 			var list = userIds.Select(userId => new TSysUserRole { UserId = userId, RoleId = roleId }).ToList();
-			var affrows = await fsql.Insert(list).ExecuteAffrowsAsync();
-			rows = affrows > 0 ? list.Count : 0;
-		}
-
-		return rows;
-	}
-
-	/// <summary>
-	/// 构造角色列表查询条件（对应 Java 的 <c>buildQueryWrapper</c>）
-	/// </summary>
-	/// <param name="role">角色筛选条件</param>
-	/// <returns>角色列表查询对象</returns>
-	private ISelect<TSysRole> BuildRoleQuery(SysRoleBo role)
-	{
-		return fsql.Select<TSysRole>()
-			// 对应 Java 的 @TableLogic：只查询未删除的角色
-			.Where(x => x.DelFlag == SystemConstants.NORMAL)
-			.WhereNotNullEq(role.RoleId, x => x.RoleId)
-			.WhereLike(role.RoleName, x => x.RoleName)
-			.WhereHasTextEq(role.Status, x => x.Status)
-			.WhereLike(role.RoleKey, x => x.RoleKey)
-			// 创建时间区间检索（对应 Java 的 params.beginTime / params.endTime）
-			.WhereTimeRange(role.Params, x => x.CreateTime)
-			.OrderBy(x => x.RoleSort)
-			.OrderBy(x => x.CreateTime);
-	}
-
-	/// <summary>
-	/// 新增角色和菜单关联（对应 Java 的 <c>insertRoleMenu</c>）
-	/// </summary>
-	/// <param name="role">角色信息（含菜单ID集合）</param>
-	/// <returns>影响行数</returns>
-	private async Task<int> InsertRoleMenu(SysRoleBo role)
-	{
-		var rows = 1;
-		if (role.MenuIds is { Length: > 0 } && role.RoleId.HasValue)
-		{
-			var list = role.MenuIds
-				.Select(menuId => new TSysRoleMenu { RoleId = role.RoleId.Value, MenuId = menuId })
-				.ToList();
-
-			var affrows = await fsql.Insert(list).ExecuteAffrowsAsync();
-			rows = affrows > 0 ? list.Count : 0;
-		}
-
-		return rows;
-	}
-
-	/// <summary>
-	/// 新增角色和部门关联（对应 Java 的 <c>insertRoleDept</c>）
-	/// </summary>
-	/// <param name="role">角色信息（含部门ID集合）</param>
-	/// <returns>影响行数</returns>
-	private async Task<int> InsertRoleDept(SysRoleBo role)
-	{
-		var rows = 1;
-		if (role.DeptIds is { Length: > 0 } && role.RoleId.HasValue)
-		{
-			var list = role.DeptIds
-				.Select(deptId => new TSysRoleDept { RoleId = role.RoleId.Value, DeptId = deptId })
-				.ToList();
-
 			var affrows = await fsql.Insert(list).ExecuteAffrowsAsync();
 			rows = affrows > 0 ? list.Count : 0;
 		}

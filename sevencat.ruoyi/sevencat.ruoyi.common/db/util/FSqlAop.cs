@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
+using sevencat.ruoyi.common.db;
 using sevencat.ruoyi.common.db.attr;
 using sevencat.ruoyi.common.db.datapermission;
 using sevencat.ruoyi.common.entity.db;
@@ -9,8 +10,6 @@ namespace sevencat.ruoyi.common.db.util;
 
 public class FSqlAop
 {
-	private static readonly SnowflakeIdWorker _idWorker = new SnowflakeIdWorker(workerId: 1, datacenterId: 1);
-
 	/// <summary>
 	/// 实体类型 -&gt; 该实体上带 <see cref="SnowflakeAttribute"/> 的属性（没有则为 null）
 	/// </summary>
@@ -77,7 +76,9 @@ public class FSqlAop
 			var snow = GetSnowflakeProperty(entity.GetType());
 			if (snow != null && snow.PropertyType == typeof(long) && (long)snow.GetValue(entity) == 0L)
 			{
-				snow.SetValue(entity, _idWorker.NextId());
+				// 必须复用容器中的 IIdGen 单例：SnowflakeIdWorker 的 sequence / lastTimestamp 是实例字段，
+				// 两个同 workerId+datacenterId 的实例在同一毫秒内会各自从 sequence=0 开始，生成完全相同的 ID
+				snow.SetValue(entity, IdGenUtil.NextId());
 			}
 
 			entity.CreateBy = uid;

@@ -435,20 +435,23 @@ public class MenuService(IFreeSql fsql, IMapper mapper, LoginService loginServic
 	/// </summary>
 	/// <param name="menuIds">菜单ID集合</param>
 	/// <returns>影响行数</returns>
-	// Java 原注解 @Transactional(rollbackFor = Exception.class)：C# 端未引入事务包装，多次写库未置于同一事务
-	public async Task<int> DeleteMenuById(List<long> menuIds)
+	public Task<int> DeleteMenuById(List<long> menuIds)
 	{
 		if (menuIds is not { Count: > 0 })
 		{
-			return 0;
+			return Task.FromResult(0);
 		}
 
-		await fsql.Delete<TSysRoleMenu>()
-			.Where(x => menuIds.Contains(x.MenuId))
-			.ExecuteAffrowsAsync();
-		return await fsql.Delete<TSysMenu>()
-			.Where(x => menuIds.Contains(x.MenuId))
-			.ExecuteAffrowsAsync();
+		// 菜单与「角色-菜单」关联必须同事务删除，避免删一半留下孤儿关联
+		return Task.FromResult(fsql.UseTransaction(() =>
+		{
+			fsql.Delete<TSysRoleMenu>()
+				.Where(x => menuIds.Contains(x.MenuId))
+				.ExecuteAffrows();
+			return fsql.Delete<TSysMenu>()
+				.Where(x => menuIds.Contains(x.MenuId))
+				.ExecuteAffrows();
+		}));
 	}
 
 	/// <summary>

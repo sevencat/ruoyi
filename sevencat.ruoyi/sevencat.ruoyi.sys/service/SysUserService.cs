@@ -20,7 +20,7 @@ namespace sevencat.ruoyi.sys.service;
 /// 用户信息业务层（对应 Java 的 <c>SysUserServiceImpl</c>）
 /// </summary>
 [Component]
-public class SysUserService(
+public partial class SysUserService(
 	IFreeSql fsql,
 	IMapper mapper,
 	LoginService loginService,
@@ -387,13 +387,19 @@ public class SysUserService(
 	{
 		var sysUser = user.MapTo<TSysUser>(mapper);
 		// 对应 Java 的 InjectionMetaObjectHandler 自动填充创建人
-		sysUser.CreateBy ??= await loginService.GetLoginuid();
+		// 事务体内不能出现 await，先把登录人查出来
+		var loginUid = await loginService.GetLoginuid();
+		sysUser.CreateBy ??= loginUid;
 
-		var rows = await fsql.Insert(sysUser).ExecuteAffrowsAsync();
-		// 主键由 SnowflakeAop 生成并回写到实体，这里直接取用
-		await InsertUserPost(user.PostIds, sysUser.UserId);
-		await InsertUserRole(user.RoleIds, sysUser.UserId);
-		return rows;
+		// 用户主体、用户-岗位、用户-角色三处写库必须同事务
+		return fsql.UseTransaction(() =>
+		{
+			var rows = fsql.Insert(sysUser).ExecuteAffrows();
+			// 主键由 SnowflakeAop 生成并回写到实体，这里直接取用
+			InsertUserPost(user.PostIds, sysUser.UserId);
+			InsertUserRole(user.RoleIds, sysUser.UserId);
+			return rows;
+		});
 	}
 
 	/// <summary>
@@ -404,24 +410,30 @@ public class SysUserService(
 	public async Task<int> UpdateUser(SysUserBo user)
 	{
 		var userId = user.UserId ?? 0L;
+		// 事务体内不能出现 await，先把登录人查出来
+		var loginUid = await loginService.GetLoginuid();
 
-		// 删除用户与角色的关联后重建
-		await fsql.Delete<TSysUserRole>().Where(x => x.UserId == userId).ExecuteAffrowsAsync();
-		await InsertUserRole(user.RoleIds, userId);
+		// 用户主体、用户-角色、用户-岗位三处写库必须同事务，避免中途失败留下脏关联
+		return fsql.UseTransaction(() =>
+		{
+			// 删除用户与角色的关联后重建
+			fsql.Delete<TSysUserRole>().Where(x => x.UserId == userId).ExecuteAffrows();
+			InsertUserRole(user.RoleIds, userId);
 
-		// 删除用户与岗位的关联后重建
-		await fsql.Delete<TSysUserPost>().Where(x => x.UserId == userId).ExecuteAffrowsAsync();
-		await InsertUserPost(user.PostIds, userId);
+			// 删除用户与岗位的关联后重建
+			fsql.Delete<TSysUserPost>().Where(x => x.UserId == userId).ExecuteAffrows();
+			InsertUserPost(user.PostIds, userId);
 
-		var sysUser = user.MapTo<TSysUser>(mapper);
-		sysUser.UpdateBy ??= await loginService.GetLoginuid();
+			var sysUser = user.MapTo<TSysUser>(mapper);
+			sysUser.UpdateBy ??= loginUid;
 
-		// SetSourceIgnore 对应 MyBatis-Plus updateById 的「null 不更新」语义，
-		// 未传的字段（创建人/创建时间/密码等）为 null 时不会被覆盖
-		return await fsql.Update<TSysUser>()
-			.SetSourceIgnore(sysUser)
-			.Where(a => a.UserId == userId)
-			.ExecuteAffrowsAsync();
+			// SetSourceIgnore 对应 MyBatis-Plus updateById 的「null 不更新」语义，
+			// 未传的字段（创建人/创建时间/密码等）为 null 时不会被覆盖
+			return fsql.Update<TSysUser>()
+				.SetSourceIgnore(sysUser)
+				.Where(a => a.UserId == userId)
+				.ExecuteAffrows();
+		});
 	}
 
 	/// <summary>
@@ -501,22 +513,26 @@ public class SysUserService(
 	/// </summary>
 	/// <param name="userIds">用户ID数组</param>
 	/// <returns>影响行数</returns>
-	public async Task<int> DeleteUserByIds(long[] userIds)
+	public Task<int> DeleteUserByIds(long[] userIds)
 	{
 		foreach (var userId in userIds)
 		{
 			CheckUserAllowed(userId);
 		}
 
-		// 删除用户与角色 / 岗位的关联
-		await fsql.Delete<TSysUserRole>().Where(x => userIds.Contains(x.UserId)).ExecuteAffrowsAsync();
-		await fsql.Delete<TSysUserPost>().Where(x => userIds.Contains(x.UserId)).ExecuteAffrowsAsync();
+		// 关联清理与逻辑删除必须同事务
+		return Task.FromResult(fsql.UseTransaction(() =>
+		{
+			// 删除用户与角色 / 岗位的关联
+			fsql.Delete<TSysUserRole>().Where(x => userIds.Contains(x.UserId)).ExecuteAffrows();
+			fsql.Delete<TSysUserPost>().Where(x => userIds.Contains(x.UserId)).ExecuteAffrows();
 
-		// 对应 Java 的 @TableLogic 逻辑删除：deleteBatchIds 实际是 update del_flag = '1'
-		return await fsql.Update<TSysUser>()
-			.Set(x => x.DelFlag, DEL_FLAG_DELETED)
-			.Where(x => userIds.Contains(x.UserId))
-			.ExecuteAffrowsAsync();
+			// 对应 Java 的 @TableLogic 逻辑删除：deleteBatchIds 实际是 update del_flag = '1'
+			return fsql.Update<TSysUser>()
+				.Set(x => x.DelFlag, DEL_FLAG_DELETED)
+				.Where(x => userIds.Contains(x.UserId))
+				.ExecuteAffrows();
+		}));
 	}
 
 	/// <summary>
@@ -524,10 +540,16 @@ public class SysUserService(
 	/// </summary>
 	/// <param name="userId">用户ID</param>
 	/// <param name="roleIds">角色ID数组</param>
-	public async Task InsertUserAuth(long userId, long[] roleIds)
+	public Task InsertUserAuth(long userId, long[] roleIds)
 	{
-		await fsql.Delete<TSysUserRole>().Where(x => x.UserId == userId).ExecuteAffrowsAsync();
-		await InsertUserRole(roleIds, userId);
+		// 先清空再重建用户-角色关联，两次写库同事务
+		fsql.UseTransaction(() =>
+		{
+			fsql.Delete<TSysUserRole>().Where(x => x.UserId == userId).ExecuteAffrows();
+			InsertUserRole(roleIds, userId);
+		});
+
+		return Task.CompletedTask;
 	}
 
 	/// <summary>
@@ -612,194 +634,5 @@ public class SysUserService(
 
 		successMsg.Insert(0, $"恭喜您，数据已全部导入成功！共 {successNum} 条，数据如下：");
 		return successMsg.ToString();
-	}
-
-	/// <summary>
-	/// 新增用户岗位关联（对应 Java 的 <c>insertUserPost</c>）
-	/// </summary>
-	/// <param name="postIds">岗位ID数组</param>
-	/// <param name="userId">用户ID</param>
-	private async Task InsertUserPost(long[] postIds, long userId)
-	{
-		if (postIds == null || postIds.Length == 0)
-		{
-			return;
-		}
-
-		var list = postIds.Select(postId => new TSysUserPost { UserId = userId, PostId = postId }).ToList();
-		await fsql.Insert(list).ExecuteAffrowsAsync();
-	}
-
-	/// <summary>
-	/// 新增用户角色关联（对应 Java 的 <c>insertUserRole</c>）
-	/// </summary>
-	/// <param name="roleIds">角色ID数组</param>
-	/// <param name="userId">用户ID</param>
-	private async Task InsertUserRole(long[] roleIds, long userId)
-	{
-		if (roleIds == null || roleIds.Length == 0)
-		{
-			return;
-		}
-
-		// Java 在这里会调用 roleService.checkRoleDataScope 校验角色数据权限，C# 端无数据权限设施，未实现
-		var list = roleIds.Select(roleId => new TSysUserRole { UserId = userId, RoleId = roleId }).ToList();
-		await fsql.Insert(list).ExecuteAffrowsAsync();
-	}
-
-	/// <summary>
-	/// 构造用户列表查询条件（对应 Java 的 <c>buildQueryWrapper</c>）
-	/// </summary>
-	/// <param name="user">用户筛选条件</param>
-	/// <returns>用户列表查询对象</returns>
-	private ISelect<TSysUser> BuildUserQuery(SysUserBo user)
-	{
-		var q = fsql.Select<TSysUser>()
-			.Where(x => x.DelFlag == SystemConstants.NORMAL)
-			.WhereNotNullEq(user.UserId, x => x.UserId)
-			.WhereNotNullEq(user.DeptId, x => x.DeptId)
-			.WhereLike(user.UserName, x => x.UserName)
-			.WhereLike(user.NickName, x => x.NickName)
-			.WhereHasTextEq(user.UserType, x => x.UserType)
-			.WhereLike(user.Email, x => x.Email)
-			.WhereLike(user.PhoneNumber, x => x.PhoneNumber)
-			.WhereHasTextEq(user.Status, x => x.Status)
-			// 创建时间区间检索（对应 Java 的 params.beginTime / params.endTime）
-			.WhereTimeRange(user.Params, x => x.CreateTime);
-
-		// 对应 Java 的 in(userIds) / notIn(excludeUserIds)
-		var userIds = ParseLongList(user.UserIds);
-		if (userIds.Count > 0)
-		{
-			q = q.Where(x => userIds.Contains(x.UserId));
-		}
-
-		var excludeUserIds = ParseLongList(user.ExcludeUserIds);
-		if (excludeUserIds.Count > 0)
-		{
-			q = q.Where(x => !excludeUserIds.Contains(x.UserId));
-		}
-
-		// 对应 Java 的 inSql("select user_id from sys_user_role where role_id = #{roleId}")，
-		// 这里先取出用户ID再按 in 过滤，语义一致
-		if (user.RoleId.HasValue)
-		{
-			var roleUserIds = fsql.Select<TSysUserRole>()
-				.Where(r => r.RoleId == user.RoleId.Value)
-				.ToList(r => r.UserId);
-			q = roleUserIds.Count == 0 ? q.Where(x => false) : q.Where(x => roleUserIds.Contains(x.UserId));
-		}
-
-		return q.OrderBy(x => x.UserId);
-	}
-
-	/// <summary>
-	/// 构造「用户 + 角色」关联查询条件（对应 Java 的 <c>buildUserRoleJoinWrapper</c>）
-	/// </summary>
-	/// <param name="user">用户筛选条件</param>
-	/// <returns>用户列表查询对象</returns>
-	/// <remarks>
-	/// Java 侧通过 left join sys_dept / sys_user_role / sys_role 并 distinct 实现；
-	/// C# 端按用户维度查询，角色关联由调用方以 in / notIn 过滤，语义等价且避免 join 去重。
-	/// </remarks>
-	private ISelect<TSysUser> BuildUserRoleJoinQuery(SysUserBo user)
-	{
-		return fsql.Select<TSysUser>()
-			.Where(x => x.DelFlag == SystemConstants.NORMAL)
-			.WhereLike(user.UserName, x => x.UserName)
-			.WhereHasTextEq(user.Status, x => x.Status)
-			.WhereLike(user.PhoneNumber, x => x.PhoneNumber)
-			.OrderBy(x => x.UserId);
-	}
-
-	/// <summary>
-	/// 回填用户列表的部门名称（对应 Java 的 left join sys_dept）
-	/// </summary>
-	/// <param name="rows">用户列表</param>
-	private async Task FillDeptName(List<SysUserVo> rows)
-	{
-		if (rows == null || rows.Count == 0)
-		{
-			return;
-		}
-
-		var deptIds = rows.Where(x => x.DeptId.HasValue).Select(x => x.DeptId.Value).Distinct().ToList();
-		if (deptIds.Count == 0)
-		{
-			return;
-		}
-
-		var depts = await fsql.Select<TSysDept>()
-			.Where(x => deptIds.Contains(x.DeptId))
-			.ToListAsync(x => new { x.DeptId, x.DeptName });
-		var deptNames = depts.ToDictionary(x => x.DeptId, x => x.DeptName);
-
-		foreach (var row in rows)
-		{
-			if (row.DeptId.HasValue && deptNames.TryGetValue(row.DeptId.Value, out var deptName))
-			{
-				row.DeptName = deptName;
-			}
-		}
-	}
-
-	/// <summary>
-	/// 回填导出数据的部门负责人账号（对应 Java 的 left join sys_user u1 on u1.user_id = d.leader）
-	/// </summary>
-	/// <param name="users">用户实体列表</param>
-	/// <param name="rows">导出数据行</param>
-	private async Task FillLeaderName(List<TSysUser> users, List<SysUserExportVo> rows)
-	{
-		var deptIds = users.Where(x => x.DeptId.HasValue).Select(x => x.DeptId.Value).Distinct().ToList();
-		if (deptIds.Count == 0)
-		{
-			return;
-		}
-
-		var depts = await fsql.Select<TSysDept>()
-			.Where(x => deptIds.Contains(x.DeptId))
-			.ToListAsync(x => new { x.DeptId, x.Leader });
-		var deptLeaders = depts.Where(x => x.Leader.HasValue)
-			.ToDictionary(x => x.DeptId, x => x.Leader.Value);
-
-		var leaderIds = deptLeaders.Values.Distinct().ToList();
-		if (leaderIds.Count == 0)
-		{
-			return;
-		}
-
-		var leaders = await fsql.Select<TSysUser>()
-			.Where(x => leaderIds.Contains(x.UserId))
-			.ToListAsync(x => new { x.UserId, x.UserName });
-		var leaderNames = leaders.ToDictionary(x => x.UserId, x => x.UserName);
-
-		for (var i = 0; i < users.Count; i++)
-		{
-			if (users[i].DeptId.HasValue
-			    && deptLeaders.TryGetValue(users[i].DeptId.Value, out var leaderId)
-			    && leaderNames.TryGetValue(leaderId, out var leaderName))
-			{
-				rows[i].LeaderName = leaderName;
-			}
-		}
-	}
-
-	/// <summary>
-	/// 解析逗号分隔的ID串（对应 Java 的 <c>StringUtils.splitTo(value, Convert::toLong)</c>）
-	/// </summary>
-	/// <param name="value">逗号分隔的ID串</param>
-	/// <returns>ID列表</returns>
-	private static List<long> ParseLongList(string value)
-	{
-		if (value.IsNullOrWhiteSpace())
-		{
-			return [];
-		}
-
-		return value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-			.Select(item => long.TryParse(item, out var id) ? id : (long?)null)
-			.Where(id => id.HasValue)
-			.Select(id => id.Value)
-			.ToList();
 	}
 }

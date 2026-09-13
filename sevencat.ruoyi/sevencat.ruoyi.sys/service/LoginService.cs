@@ -255,13 +255,14 @@ public class LoginService(
 			}
 		}
 
-		// TODO 部门信息：deptId 不为空时查询部门，填充 DeptName / DeptCategory（待 DeptService 就绪）
 		//角色id
 		var dbuserRoles = await fsql.Select<TSysUserRole, TSysRole>()
 			.LeftJoin(x => x.t1.RoleId == x.t2.RoleId)
 			.Where(x => x.t1.UserId == dbuser.UserId)
 			.ToListAsync(x => x.t2);
-		loginUser.Roles = dbuserRoles.Select(x => new RoleDTO()
+		// 用户-角色关联指向已删除的角色时，左连接会返回 null 元素，直接投影会抛 NullReferenceException
+		var validRoles = dbuserRoles.Where(x => x != null).ToList();
+		loginUser.Roles = validRoles.Select(x => new RoleDTO()
 		{
 			RoleId = x.RoleId,
 			RoleKey = x.RoleKey,
@@ -274,14 +275,14 @@ public class LoginService(
 		}
 		else
 		{
-			var subrklist = loginUser.Roles.Select(x => x.RoleKey.Trim().Split(",",
+			// RoleKey 允许为空，拆分前先兜底 null，避免个别脏数据导致整个登录流程失败
+			var subrklist = loginUser.Roles.Select(x => (x.RoleKey ?? string.Empty).Trim().Split(",",
 					StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
 				.SelectMany(x => x)
 				.ToHashSet();
 			loginUser.RolePermission = subrklist;
 		}
 
-		// TODO 菜单权限 MenuPermission、角色权限 RolePermission（待 PermissionService 就绪）
 		if (loginUser.IsSuperAdmin())
 		{
 			loginUser.MenuPermission = ["*:*:*"];
@@ -289,18 +290,19 @@ public class LoginService(
 		else
 		{
 			//从roles里面拉
-			var roleids = dbuserRoles.Select(x => x.RoleId).ToList();
+			var roleids = validRoles.Select(x => x.RoleId).ToList();
 			var menuslist = await fsql.Select<TSysRoleMenu, TSysMenu>()
 				.LeftJoin(x => x.t1.MenuId == x.t2.MenuId)
 				.Where(x => roleids.Contains(x.t1.RoleId))
 				.ToListAsync(x => x.t2.Perms);
-			loginUser.MenuPermission = menuslist.Select(x => x.Trim())
+			// Perms 列可为空，先兜底 null 再 Trim，最后过滤空白值
+			loginUser.MenuPermission = menuslist.Select(x => (x ?? string.Empty).Trim())
 				.Where(x => x.IsNotNullOrWhiteSpace())
 				.ToHashSet();
 		}
-		// TODO 角色列表 Roles、数据权限角色映射 DataScopeRoleMap（待 RoleService / PermissionService 就绪）
 
-		// TODO 岗位列表 Posts（待 PostService 就绪）
+		// TODO DataScopeRoleMap（角色自定义数据权限映射）目前只有 LoginUser 上的定义，尚无填充与消费逻辑，暂不实现
+
 		var dbposts = await fsql.Select<TSysPost, TSysUserPost>()
 			.LeftJoin(x => x.t1.PostId == x.t2.PostId)
 			.Where(x => x.t2.UserId == loginUser.UserId)
