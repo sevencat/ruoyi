@@ -1,5 +1,5 @@
-﻿using Autofac.Annotation;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using sevencat.ruoyi.config.properties;
 
 namespace sevencat.ruoyi.web.controller;
 
@@ -19,10 +19,13 @@ namespace sevencat.ruoyi.web.controller;
 ///如果使用真实的minio,这步是可以省略掉的!!!
 [ApiController]
 [Route("/api/minio")]
-public class MinioMockController : ControllerBase
+public class MinioMockController(MyOssConfig ossConfig) : ControllerBase
 {
-	[Value("oss:root")]
-	private string LocalStorageRoot;
+	/// <summary>
+	/// 本地存储根目录绝对路径，未配置 <c>oss:root</c> 时回退为 <c>{程序目录}/minio-data</c>
+	/// </summary>
+	/// <remarks>与 <c>LocalOssClient</c> 共用同一条配置解析口径，避免两处行为不一致</remarks>
+	private string LocalStorageRoot => ossConfig.EffectiveRoot;
 
 	/// <summary>
 	/// 模拟 GetObject（下载文件 / 读取对象）
@@ -40,24 +43,6 @@ public class MinioMockController : ControllerBase
 
 		// 直接以物理文件流返回，完全兼容 MinIO 客户端的读取
 		return PhysicalFile(filePath, "application/octet-stream");
-	}
-
-
-	/// <summary>
-	/// 解析本地存储根目录
-	/// </summary>
-	/// <param name="cfg">应用配置</param>
-	/// <returns>存储根目录绝对路径</returns>
-	private static string ResolveLocalStorageRoot(IConfiguration cfg)
-	{
-		var root = cfg.GetValue<string>("minio:root");
-		if (!string.IsNullOrWhiteSpace(root))
-		{
-			return Path.GetFullPath(root);
-		}
-
-		// 与 AppModule 中静态文件目录一样，取程序所在目录
-		return Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "minio-data");
 	}
 
 	/// <summary>
