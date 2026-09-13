@@ -31,8 +31,7 @@ public class SysUserController(
 	SysDeptService deptService,
 	SysUserService userService,
 	SysRoleService roleService,
-	SysPostService postService,
-	IHttpContextAccessor httpCtxAccessor)
+	SysPostService postService)
 {
 	/// <summary>
 	/// 用户数据导入模板/导出使用的 sheet 名
@@ -441,6 +440,6 @@ public class SysUserController(
 	/// <param name="rows">数据行</param>
 	private async Task WriteExcelAsync<T>(IEnumerable<T> rows)
 	{
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, rows, ExcelSheetName);
+		await rows.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 }

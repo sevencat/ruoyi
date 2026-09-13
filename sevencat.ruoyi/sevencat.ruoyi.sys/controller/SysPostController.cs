@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
@@ -25,8 +24,7 @@ namespace sevencat.ruoyi.sys.controller;
 public class SysPostController(
 	SysPostService postService,
 	SysDeptService deptService,
-	ExcelDictFormatConverter dictFormatConverter,
-	IHttpContextAccessor httpCtxAccessor)
+	ExcelDictFormatConverter dictFormatConverter)
 {
 	/// <summary>
 	/// 岗位导出使用的 sheet 名
@@ -59,7 +57,7 @@ public class SysPostController(
 		var list = await postService.SelectPostList(post);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（status 的 sys_normal_disable）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

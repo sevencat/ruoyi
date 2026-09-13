@@ -1,6 +1,6 @@
-using Autofac.Util;
 using MiniExcelLibs;
 using Microsoft.AspNetCore.Http;
+using sevencat.ruoyi.common.util;
 
 namespace sevencat.ruoyi.common.excel;
 
@@ -9,8 +9,6 @@ namespace sevencat.ruoyi.common.excel;
 /// </summary>
 public static class ExcelHttpExt
 {
-	private static readonly Lazy<IHttpContextAccessor> httpCtxAccessor = IocFactory.CreateLazy<IHttpContextAccessor>();
-
 	/// <summary>
 	/// xlsx 内容类型
 	/// </summary>
@@ -40,9 +38,7 @@ public static class ExcelHttpExt
 
 	public static async Task WriteExcelToHttpAsync<T>(this IEnumerable<T> rows, string sheetName)
 	{
-		var ctx = httpCtxAccessor.Value.HttpContext;
-		if (ctx == null)
-			throw new Exception("不在http请求内");
+		var ctx = HttpUtil.GetCurrentHttpContext();
 		await WriteAsync(ctx.Response, rows, sheetName);
 	}
 }

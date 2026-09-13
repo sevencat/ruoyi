@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.security;
+using sevencat.ruoyi.common.util;
 using sevencat.ruoyi.sys.service;
 using sevencat.ruoyi.sys.vo;
 
@@ -10,8 +11,6 @@ namespace sevencat.ruoyi.sys.controller;
 [ApiController]
 [Route("/api/resource/message")]
 public class SysMessageController(
-	IFreeSql fsql,
-	IHttpContextAccessor httpCtxAccessor,
 	SseManager sseManager,
 	LoginService loginService,
 	SysMessageService messageService)
@@ -33,18 +32,18 @@ public class SysMessageController(
 		};
 		return box.ToCommonResult();
 	}
-	
+
 	[HttpGet]
 	public async Task SseConnect([FromQuery] string Authorization, CancellationToken cancellationToken)
 	{
-		var httpcontext = httpCtxAccessor.HttpContext;
+		var httpcontext = HttpUtil.GetCurrentHttpContext();
 		// === 认证逻辑开始 ===
 		if (string.IsNullOrEmpty(Authorization))
 		{
 			httpcontext.Response.StatusCode = StatusCodes.Status401Unauthorized;
 			return;
 		}
-        
+
 		// 假设这里解析 Token 拿到了真实的 UserId
 		var lu = await loginService.GetLoginUserByToken(Authorization);
 		if (lu == null)

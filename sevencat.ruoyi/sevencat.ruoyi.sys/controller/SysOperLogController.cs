@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
@@ -20,8 +19,7 @@ namespace sevencat.ruoyi.sys.controller;
 [Route("/api/monitor/operlog")]
 public class SysOperLogController(
 	SysOperLogService operLogService,
-	ExcelDictFormatConverter dictFormatConverter,
-	IHttpContextAccessor httpCtxAccessor)
+	ExcelDictFormatConverter dictFormatConverter)
 {
 	/// <summary>
 	/// 操作日志导出使用的 sheet 名
@@ -54,7 +52,7 @@ public class SysOperLogController(
 		var list = await operLogService.SelectOperLogList(bo);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（businessType 的 sys_oper_type、status 的 sys_common_status 等）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

@@ -16,13 +16,13 @@ namespace sevencat.ruoyi.web.controller;
 /// 只挂 /api/minio 时，SDK 的上传/下载请求会因根路径没有路由而拿到 404（无响应体），
 /// 表现为 Minio SDK 抛出 MinIO API responded with message={对象键}。
 /// </remarks>
+///如果使用真实的minio,这步是可以省略掉的!!!
 [ApiController]
 [Route("/api/minio")]
 public class MinioMockController : ControllerBase
 {
 	[Value("oss:root")]
 	private string LocalStorageRoot;
-
 
 	/// <summary>
 	/// 模拟 GetObject（下载文件 / 读取对象）

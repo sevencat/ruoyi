@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.entity;
@@ -21,8 +20,7 @@ namespace sevencat.ruoyi.sys.controller;
 [Route("/api/system/config")]
 public class SysConfigController(
 	SysConfigService configService,
-	ExcelDictFormatConverter dictFormatConverter,
-	IHttpContextAccessor httpCtxAccessor)
+	ExcelDictFormatConverter dictFormatConverter)
 {
 	/// <summary>
 	/// 参数配置导出使用的 sheet 名
@@ -56,7 +54,7 @@ public class SysConfigController(
 		var list = await configService.SelectConfigList(config);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（configType 的 sys_yes_no）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

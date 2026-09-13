@@ -74,7 +74,7 @@
 					</template>
 					<el-tabs v-model="activeTab" class="profile-tabs">
 						<el-tab-pane label="基本资料" name="userinfo">
-							<userInfo :user="userForm" />
+							<userInfo :user="state.user" />
 						</el-tab-pane>
 						<el-tab-pane label="修改密码" name="resetPwd">
 							<resetPwd />
@@ -123,12 +123,10 @@ const state = ref<State>({
 	devices: []
 });
 
-const userForm = ref({});
-
 const getUser = async () => {
 	const res = await getUserProfile();
+	// 左侧概览与"基本资料"表单共用同一份 user，避免保存后左侧信息仍是旧值
 	state.value.user = res.data.user;
-	userForm.value = { ...res.data.user };
 	state.value.roleGroup = res.data.roleGroup;
 	state.value.postGroup = res.data.postGroup;
 	// 同步头像到 pinia：导航栏与头像裁剪弹窗都读 store，不回写会一直停留在登录时的旧头像

@@ -7,6 +7,7 @@ using sevencat.ruoyi.common.entity;
 using sevencat.ruoyi.common.enums;
 using sevencat.ruoyi.common.log.attr;
 using sevencat.ruoyi.common.security.attr;
+using sevencat.ruoyi.common.util;
 using sevencat.ruoyi.sys.bo;
 using sevencat.ruoyi.sys.dto;
 using sevencat.ruoyi.sys.service;
@@ -23,7 +24,7 @@ namespace sevencat.ruoyi.sys.controller;
 /// </remarks>
 [ApiController]
 [Route("/api/resource/oss")]
-public class SysOssController(SysOssService ossService, IHttpContextAccessor httpCtxAccessor)
+public class SysOssController(SysOssService ossService)
 {
 	/// <summary>
 	/// 分页查询 OSS 列表
@@ -77,7 +78,7 @@ public class SysOssController(SysOssService ossService, IHttpContextAccessor htt
 	public async Task Download([FromRoute] long ossId)
 	{
 		var file = await ossService.Download(ossId);
-		var response = httpCtxAccessor.HttpContext.Response;
+		var response = HttpUtil.GetCurrentHttpContext().Response;
 		var encodedFileName = Uri.EscapeDataString(file.FileName ?? string.Empty);
 
 		// 对应 Java 的两个响应头：Content-Disposition 给浏览器，download-filename 给前端 download 插件读取

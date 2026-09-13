@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
@@ -21,8 +20,7 @@ namespace sevencat.ruoyi.sys.controller;
 [Route("/api/system/client")]
 public class SysClientController(
 	SysClientService clientService,
-	ExcelDictFormatConverter dictFormatConverter,
-	IHttpContextAccessor httpCtxAccessor)
+	ExcelDictFormatConverter dictFormatConverter)
 {
 	/// <summary>
 	/// 客户端导出使用的 sheet 名
@@ -55,7 +53,7 @@ public class SysClientController(
 		var list = await clientService.SelectClientList(client);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（status 的 0=正常,1=停用）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

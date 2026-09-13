@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
 using sevencat.ruoyi.common.entity;
@@ -22,8 +21,7 @@ namespace sevencat.ruoyi.sys.controller;
 public class SysDictDataController(
 	SysDictDataApi dictDataService,
 	SysDictTypeService dictTypeService,
-	ExcelDictFormatConverter dictFormatConverter,
-	IHttpContextAccessor httpCtxAccessor)
+	ExcelDictFormatConverter dictFormatConverter)
 {
 	/// <summary>
 	/// 字典数据导出使用的 sheet 名
@@ -57,7 +55,7 @@ public class SysDictDataController(
 		var list = await dictDataService.SelectDictDataList(dictData);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat / ExcelDictConvert 的转换器（如 isDefault 的 sys_yes_no）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

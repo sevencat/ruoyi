@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
@@ -20,8 +19,7 @@ namespace sevencat.ruoyi.sys.controller;
 [ApiController]
 [Route("/api/system/dict/type")]
 public class SysDictTypeController(
-	SysDictTypeService dictTypeService,
-	IHttpContextAccessor httpCtxAccessor)
+	SysDictTypeService dictTypeService)
 {
 	/// <summary>
 	/// 字典类型导出使用的 sheet 名
@@ -53,7 +51,7 @@ public class SysDictTypeController(
 	public async Task Export([FromQuery] SysDictTypeBo dictType)
 	{
 		var list = await dictTypeService.SelectDictTypeList(dictType);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
@@ -25,8 +24,7 @@ public class SysRoleController(
 	SysRoleService roleService,
 	SysUserService userService,
 	SysDeptService deptService,
-	ExcelDictFormatConverter dictFormatConverter,
-	IHttpContextAccessor httpCtxAccessor)
+	ExcelDictFormatConverter dictFormatConverter)
 {
 	/// <summary>
 	/// 角色导出使用的 sheet 名
@@ -59,7 +57,7 @@ public class SysRoleController(
 		var list = await roleService.SelectRoleList(role);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（status / dataScope）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>

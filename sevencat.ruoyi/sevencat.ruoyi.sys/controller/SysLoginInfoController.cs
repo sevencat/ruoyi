@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using sevencat.common;
 using sevencat.common.entity;
@@ -22,8 +21,7 @@ namespace sevencat.ruoyi.sys.controller;
 [Route("/api/monitor/logininfo")]
 public class SysLoginInfoController(
 	SysLoginInfoService loginInfoService,
-	ExcelDictFormatConverter dictFormatConverter,
-	IHttpContextAccessor httpCtxAccessor)
+	ExcelDictFormatConverter dictFormatConverter)
 {
 	/// <summary>
 	/// 登录日志导出使用的 sheet 名
@@ -56,7 +54,7 @@ public class SysLoginInfoController(
 		var list = await loginInfoService.SelectLoginInfoList(bo);
 		// 字典转换：对应 Java VO 上 @ExcelDictFormat 的转换器（deviceType 的 sys_device_type、status 的 sys_common_status）
 		await dictFormatConverter.ToExcelData(list);
-		await ExcelHttpExt.WriteAsync(httpCtxAccessor.HttpContext.Response, list, ExcelSheetName);
+		await list.WriteExcelToHttpAsync(ExcelSheetName);
 	}
 
 	/// <summary>
