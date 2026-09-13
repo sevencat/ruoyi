@@ -239,6 +239,9 @@ public static class FSqlExt
 		return DateTime.TryParse(Convert.ToString(raw), out var parsed) ? parsed : null;
 	}
 
+
+	#region 同步事务
+
 	/// <summary>
 	/// 在同一个数据库事务中执行写操作（对应 Java 的 <c>@Transactional</c>）
 	/// </summary>
@@ -256,6 +259,7 @@ public static class FSqlExt
 		fsql.Ado.Transaction(action);
 	}
 
+
 	/// <summary>
 	/// 在同一个数据库事务中执行写操作并返回结果（对应 Java 的 <c>@Transactional</c>）
 	/// </summary>
@@ -269,4 +273,34 @@ public static class FSqlExt
 		fsql.Ado.Transaction(() => result = action());
 		return result;
 	}
+
+	#endregion
+
+
+	#region 异步事务
+
+	//这个会自动rollback
+	public static async Task<TResult> UseTransactionAsync<TResult>(this IFreeSql fsql,
+		Func<IFreeSql, Task<TResult>> action)
+	{
+		using (var uow = fsql.CreateUnitOfWork())
+		{
+			var orm = uow.Orm;
+			var result = await action(orm);
+			uow.Commit();
+			return result;
+		}
+	}
+
+	public static async Task UseTransactionAsync<TResult>(this IFreeSql fsql,
+		Func<IFreeSql, Task> action)
+	{
+		using (var uow = fsql.CreateUnitOfWork())
+		{
+			var orm = uow.Orm;
+			await action(orm);
+		}
+	}
+
+	#endregion
 }

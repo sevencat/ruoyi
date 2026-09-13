@@ -14,6 +14,7 @@
         <PackageReference Include="Autofac" Version="9.3.1"/>
         <PackageReference Include="BCrypt.Net-Next" Version="4.2.0"/>
         <PackageReference Include="FreeRedis" Version="1.5.5" />
+        <PackageReference Include="FreeSql.Repository" Version="3.5.311" />
         <PackageReference Include="Mapster" Version="10.0.12" />
         <PackageReference Include="MiniExcel" Version="1.46.0" />
         <PackageReference Include="NLog" Version="6.2.0"/>
